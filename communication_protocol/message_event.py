@@ -21,3 +21,4 @@ class MessageEvent(Enum):
     SET_RGB = "set_rgb"
     SET_FLUO = "set_fluo"
     SET_LED = "set_led"
+    ADD_TAG = "add_tag"
