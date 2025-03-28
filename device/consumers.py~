@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+
+from celery.bin.control import status
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 
@@ -11,7 +13,7 @@ from device.serializers.device import DeviceSerializer
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from utils.get_to_device_model_serializer import get_to_device_model_serializer
 
-from rfid.models import Card
+from rfid.models import Card, Rfid
 
 
 class RouterConsumer(AsyncWebsocketConsumer):
@@ -70,7 +72,8 @@ class RouterConsumer(AsyncWebsocketConsumer):
             data.payload["mac"] = data.device_id
             data.payload["home"] = async_to_sync(self._get_router)().home
             data.payload["last_seen"] = datetime.now()
-            model.objects.create(**data.payload)
+            device = model.objects.create(**data.payload)
+            async_to_sync(self.update_frontend)(device)
         except Exception as e:
             print(e)
             return None
@@ -82,12 +85,12 @@ class RouterConsumer(AsyncWebsocketConsumer):
         return data
 
     @sync_to_async
-    def update_frontend(self, device: Device):
+    def update_frontend(self, device: Device, status=200):
         model, _ = get_model_serializer_by_fun(device.fun)
         data = DeviceSerializer(model.objects.get(id=device.pk)).data
         async_to_sync(self.channel_layer.group_send)(
             f"home_{device.home.id}",
-            {"type": "send_to_frontend", "data": data},
+            {"type": "send_to_frontend", "data": {"status": status, "data": data}},
         )
 
     ########################### request ########################################
@@ -106,8 +109,13 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def device_disconnect_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
+        if not device:
+            return
         device.last_seen = datetime.now()
         await sync_to_async(device.save)(update_fields=["last_seen"])
+
+    async def check_uid_request(self, data: DeviceMessage):
+        print("check_uid_request", data)
 
     ########################### response ########################################
     async def health_check_response(self, data: DeviceMessage):
@@ -129,12 +137,23 @@ class RouterConsumer(AsyncWebsocketConsumer):
         await self._update_pending(data, MessageEvent.SET_LED)
 
     async def add_tag_response(self, data: DeviceMessage):
-        Card.objects.create(
-            device=await self.get_device_by_mac(data.device_id),
-            uid=data.payload["uid"],
-            name=data.payload["name"],
-        )
-        await self._update_pending(data, MessageEvent.ADD_TAG)
+        device = await self.get_device_by_mac(data.device_id)
+        rfid = await sync_to_async(Rfid.objects.get)(pk=device.id)
+        uid = data.payload["uid"]
+        if uid:
+            cards = await sync_to_async(Card.objects.filter)(uid=uid)
+            if await sync_to_async(cards.exists)():
+                status = 409
+            else:
+                await sync_to_async(Card.objects.create)(
+                rfid=rfid,
+                uid=uid,
+                name=data.payload["name"],
+                )
+                status = 201
+        rfid.pending.remove(MessageEvent.ADD_TAG.value)
+        await sync_to_async(rfid.save)(update_fields=["pending"])
+        await self.update_frontend(rfid, status=201 if uid else 400)
 
     async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
         device = await self.get_device_by_mac(data.device_id)

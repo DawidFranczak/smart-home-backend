@@ -9,7 +9,7 @@ from rest_framework.generics import (
 from communication_protocol.message_event import MessageEvent
 from device.serializers.device import DeviceSerializer
 from .command import add_card
-from .serializer import CardSerializer
+from .serializer import CardSerializer, RfidSerializer
 from .models import Card, Rfid
 
 from rest_framework.response import Response
@@ -52,5 +52,7 @@ class CardListCreate(ListCreateAPIView):
         validated_data = serializer.validated_data
         rfid = validated_data["rfid"]
         rfid.pending.append(MessageEvent.ADD_TAG.value)
+        rfid.save()
+        serializer_data = DeviceSerializer(rfid).data
         add_card(rfid, validated_data["name"])
-        return Response({}, 200)
+        return Response(serializer_data, 200)
