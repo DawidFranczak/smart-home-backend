@@ -16,7 +16,6 @@ from room.models import Room
 from .serializers.device import DeviceSerializer
 from .serializers.event import EventSerializer
 from .serializers.router import RouterSerializer
-from .factories import create_device
 
 
 class ListCreateRouter(ListCreateAPIView):
@@ -24,7 +23,6 @@ class ListCreateRouter(ListCreateAPIView):
     serializer_class = RouterSerializer
 
     def get_queryset(self):
-        print(self.request.user)
         return get_list_or_404(Router, home__users=self.request.user)
 
     def create(self, request, *args, **kwargs):

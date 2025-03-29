@@ -1,19 +1,22 @@
 import json
 from datetime import datetime
 
-from celery.bin.control import status
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 
 from communication_protocol.communication_protocol import DeviceMessage
 from communication_protocol.device_message import set_settings_response
 from communication_protocol.message_event import MessageEvent
+from communication_protocol.rfid_message import check_uid_response
 from device.models import Router, Device
+from rfid.check_uid_response import CheckUIDResponse
+from rfid.consumer_utils import check_uid
 from device.serializers.device import DeviceSerializer
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from utils.get_to_device_model_serializer import get_to_device_model_serializer
 
 from rfid.models import Card, Rfid
+from lamp.consumer_utils import lamp_turn_on_request
 
 
 class RouterConsumer(AsyncWebsocketConsumer):
@@ -115,7 +118,16 @@ class RouterConsumer(AsyncWebsocketConsumer):
         await sync_to_async(device.save)(update_fields=["last_seen"])
 
     async def check_uid_request(self, data: DeviceMessage):
-        print("check_uid_request", data)
+        device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
+        result = await check_uid(device, data.payload["uid"])
+        response = check_uid_response(data.device_id, data.message_id, result)
+        await self.send(text_data=json.dumps(response.to_json()))
+        if result == CheckUIDResponse.ACCESS_DENIED:
+            return
+        controlled_lamp = await sync_to_async(lambda: device.controlled_lamp)()
+        request = await lamp_turn_on_request(controlled_lamp)
+        print("request", request)
+        await self.send(text_data=json.dumps(request.to_json()))
 
     ########################### response ########################################
     async def health_check_response(self, data: DeviceMessage):
@@ -140,20 +152,26 @@ class RouterConsumer(AsyncWebsocketConsumer):
         device = await self.get_device_by_mac(data.device_id)
         rfid = await sync_to_async(Rfid.objects.get)(pk=device.id)
         uid = data.payload["uid"]
+        status = 400
         if uid:
             cards = await sync_to_async(Card.objects.filter)(uid=uid)
             if await sync_to_async(cards.exists)():
                 status = 409
             else:
                 await sync_to_async(Card.objects.create)(
-                rfid=rfid,
-                uid=uid,
-                name=data.payload["name"],
+                    rfid=rfid,
+                    uid=uid,
+                    name=data.payload["name"],
                 )
                 status = 201
         rfid.pending.remove(MessageEvent.ADD_TAG.value)
         await sync_to_async(rfid.save)(update_fields=["pending"])
-        await self.update_frontend(rfid, status=201 if uid else 400)
+        await self.update_frontend(rfid, status=status)
+
+    async def check_uid_response(self, data: DeviceMessage):
+        print("check_uid_response", data)
+    async def turn_on_response(self, data: DeviceMessage):
+        print(data)
 
     async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
         device = await self.get_device_by_mac(data.device_id)
@@ -161,3 +179,4 @@ class RouterConsumer(AsyncWebsocketConsumer):
             device.pending.remove(event.value)
             await sync_to_async(device.save)(update_fields=["pending"])
             await self.update_frontend(device)
+

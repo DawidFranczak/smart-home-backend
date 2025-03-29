@@ -19,8 +19,9 @@ class LampSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
-        data = LampSerializerDevice(instance).data
-        request = set_settings_request(instance, data)
+        # data = LampSerializerDevice(instance).data
+        # request = set_settings_request(instance, data)
+        request = message_request(MessageEvent.TURN_ON, instance.mac, {"reverse": True})
         async_to_sync(get_channel_layer().group_send)(
             f"router_{instance.get_router_mac()}",
             {"type": "router_send", "data": request.to_json()},

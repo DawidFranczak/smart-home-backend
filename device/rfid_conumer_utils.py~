@@ -1,0 +1,14 @@
+from asgiref.sync import sync_to_async
+from celery.backends.database import retry
+from kombu.pools import reset
+from twisted.internet.defer import returnValue
+
+from communication_protocol.communication_protocol import DeviceMessage
+from rfid.check_uid_response import CheckUIDResponse
+from rfid.models import Rfid
+
+
+@sync_to_async
+def check_uid(mac: str, uid: int) -> CheckUIDResponse:
+    result = Rfid.objects.filter(mac=mac, cards__uid=uid).exists()
+    return CheckUIDResponse.ACCESS_GRANTED if result else CheckUIDResponse.ACCESS_DENIED

@@ -1,7 +1,4 @@
-import socket
-from django.contrib.auth.models import User
 from django.shortcuts import get_list_or_404, get_object_or_404
-from django.utils.translation import gettext as _
 
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -16,7 +13,6 @@ from room.models import Room
 from .serializers.device import DeviceSerializer
 from .serializers.event import EventSerializer
 from .serializers.router import RouterSerializer
-from .factories import create_device
 
 
 class ListCreateRouter(ListCreateAPIView):
