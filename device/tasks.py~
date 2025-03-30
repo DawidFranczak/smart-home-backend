@@ -16,6 +16,7 @@ def check_devices():
             continue
         led_mode = check_hour_in_range(aquarium.led_start, aquarium.led_stop)
         fluo_mode = check_hour_in_range(aquarium.fluo_start, aquarium.fluo_stop)
+        print(led_mode, fluo_mode)
         if led_mode != aquarium.led_mode:
             aquarium.led_mode = led_mode
             to_save.append("led_mode")

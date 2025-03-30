@@ -10,7 +10,6 @@ from .command import add_card
 
 class RfidSerializer(serializers.ModelSerializer):
     cards = serializers.SerializerMethodField()
-    controlled_lamp = serializers.SerializerMethodField()
 
     class Meta:
         model = Rfid
@@ -18,14 +17,6 @@ class RfidSerializer(serializers.ModelSerializer):
             "port",
             "mac",
         ]
-
-    def get_controlled_lamp(self, obj: Rfid):
-        if not obj.controlled_lamp:
-            return None
-        try:
-            return {"name": obj.controlled_lamp.name, "id": obj.controlled_lamp.id}
-        except Lamp.DoesNotExist:
-            return None
 
     def get_cards(self, obj: Rfid):
         cards = obj.cards.all()

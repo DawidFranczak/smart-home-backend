@@ -52,4 +52,4 @@ class CardSerializer(serializers.ModelSerializer):
 class RfidSerializerDevice(RfidSerializer):
     class Meta:
         model = Rfid
-        fields = "__all__"
+        fields = ["name"]

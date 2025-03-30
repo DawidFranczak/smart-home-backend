@@ -18,6 +18,7 @@ from stairs.models import Stairs
 from light.serializer import LightSerializer
 from light.models import Light
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
+from .event import EventSerializer
 
 from ..models import (
     Device,
@@ -51,6 +52,10 @@ class DeviceSerializer(ModelSerializer):
             model_class.objects.get(pk=instance.id), context=self.context
         )
         data = serializer.data
+
+        data["events"] = EventSerializer(instance.events.all(), many=True).data
+        # data["events_list"] = instance.available_events()
+        # data["actions"] = instance.available_actions()
         representation.update(data)
         return representation
 

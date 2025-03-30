@@ -8,10 +8,9 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from device.models import Device, DeviceSettings, Event, Router
+from device.models import Device, Router
 from room.models import Room
 from .serializers.device import DeviceSerializer
-from .serializers.event import EventSerializer
 from .serializers.router import RouterSerializer
 
 
@@ -58,8 +57,3 @@ class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
-
-
-class EvengGet(ListAPIView):
-    serializer_class = EventSerializer
-    queryset = Event.objects.all().order_by("-date")[:20]
