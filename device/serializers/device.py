@@ -1,24 +1,8 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from django.utils import timezone
-from aquarium.serializer import AquariumSerializer
-from aquarium.models import Aquarium
-from lamp.serializer import LampSerializer
-from lamp.models import Lamp
-from rfid.serializer import RfidSerializer
-from rfid.models import Rfid
-from button.serializer import ButtonSerializer
-from button.models import Button
-from temperature.serializer import TemperatureSensor, TemperatureSerializer
-from temperature.models import TemperatureSensor
-from sunblind.serializer import SunblindSerializer
-from sunblind.models import Sunblind
-from stairs.serializer import StairsSerializer
-from stairs.models import Stairs
-from light.serializer import LightSerializer
-from light.models import Light
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
-from .event import EventSerializer
+from event.serializer import EventSerializer
 
 from ..models import (
     Device,
@@ -54,8 +38,6 @@ class DeviceSerializer(ModelSerializer):
         data = serializer.data
 
         data["events"] = EventSerializer(instance.events.all(), many=True).data
-        # data["events_list"] = instance.available_events()
-        # data["actions"] = instance.available_actions()
         representation.update(data)
         return representation
 

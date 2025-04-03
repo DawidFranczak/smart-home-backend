@@ -1,0 +1,6 @@
+from django.urls import path
+from .views import GetActionsWithEvents
+
+urlpatterns = [
+    path("get/action/", GetActionsWithEvents.as_view()),
+]

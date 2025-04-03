@@ -54,8 +54,6 @@ class DeviceSerializer(ModelSerializer):
         data = serializer.data
 
         data["events"] = EventSerializer(instance.events.all(), many=True).data
-        data["events_list"] = instance.available_events()
-        data["actions"] = instance.available_actions()
         representation.update(data)
         return representation
 

@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     "temperature",
     "sunblind",
     "light",
-    "event",
+    "event"
 ]
 
 MIDDLEWARE = [
