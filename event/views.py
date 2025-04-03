@@ -1,11 +1,31 @@
-from rest_framework.generics import get_object_or_404
+from http.client import responses
+
+from rest_framework.generics import get_object_or_404, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from device.models import Device
+from device.models import Device, Event
 from event.serializer import EventSerializer
 from event.utils import get_models_with_supported_actions
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
+
+
+class CreateEvent(CreateAPIView):
+    serializer_class = EventSerializer
+
+    def get_queryset(self):
+        return Device.objects.filter(room__user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        print(request.data)
+        event = Event.objects.create(
+            device=get_object_or_404(Device, pk=request.data["device"]),
+            target_device=get_object_or_404(Device, pk=request.data["target_device"]),
+            action=request.data["action"],
+            event=request.data["event"],
+            extra_settings=request.data["extra_settings"],
+        )
+        return Response(EventSerializer(event).data, 200)
 
 
 class GetActionsAndEvents(APIView):
@@ -25,3 +45,16 @@ class GetActionsAndEvents(APIView):
             },
             200,
         )
+
+    def post(self, request):
+        data = request.data
+
+
+class GetDeviceByFunction(APIView):
+
+    def get(self, request):
+        fun = request.query_params.get("function")
+        model, _ = get_model_serializer_by_fun(fun.lower())
+        if not model:
+            return Response([], 404)
+        return Response(model.available_actions(), 200)

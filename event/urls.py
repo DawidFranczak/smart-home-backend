@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import GetActionsAndEvents
+from .views import GetActionsAndEvents, GetDeviceByFunction, CreateEvent
 
 urlpatterns = [
-    path("get/action/", GetActionsAndEvents.as_view()),
+    path("", GetActionsAndEvents.as_view()),
+    path("<int:pk>/", CreateEvent.as_view()),
+    path("action/", GetDeviceByFunction.as_view()),
 ]

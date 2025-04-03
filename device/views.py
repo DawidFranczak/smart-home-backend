@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from device.models import Device, Router
 from room.models import Room
+from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from .serializers.device import DeviceSerializer
 from .serializers.router import RouterSerializer
 
@@ -35,6 +36,12 @@ class ListCreateDevice(ListCreateAPIView):
             return get_list_or_404(
                 Device, home__users=self.request.user, room__isnull=True
             )
+        elif "function" in self.request.query_params:
+            fun = self.request.query_params.get("function")
+            model, _ = get_model_serializer_by_fun(fun.lower())
+            if not model:
+                return Device.objects.none()
+            return get_list_or_404(model, home__users=self.request.user)
         return Device.objects.filter(room__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
