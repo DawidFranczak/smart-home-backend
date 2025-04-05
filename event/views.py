@@ -1,6 +1,6 @@
 from http.client import responses
 
-from rest_framework.generics import get_object_or_404, CreateAPIView
+from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -10,14 +10,13 @@ from event.utils import get_models_with_supported_actions
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 
 
-class CreateEvent(CreateAPIView):
+class CreateDeleteEvent(APIView):
     serializer_class = EventSerializer
 
     def get_queryset(self):
         return Device.objects.filter(room__user=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        print(request.data)
+    def post(self, request, *args, **kwargs):
         event = Event.objects.create(
             device=get_object_or_404(Device, pk=request.data["device"]),
             target_device=get_object_or_404(Device, pk=request.data["target_device"]),
@@ -26,6 +25,11 @@ class CreateEvent(CreateAPIView):
             extra_settings=request.data["extra_settings"],
         )
         return Response(EventSerializer(event).data, 200)
+
+    def delete(self, request, *args, **kwargs):
+        event = get_object_or_404(Event, pk=kwargs["pk"])
+        event.delete()
+        return Response({}, 200)
 
 
 class GetActionsAndEvents(APIView):

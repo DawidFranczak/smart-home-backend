@@ -39,7 +39,14 @@ class RouterConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def receive(self, text_data=None, bytes_data=None):
-        data = DeviceMessage.from_json(text_data)
+        try:
+            data = DeviceMessage.from_json(text_data)
+        except Exception as e:
+            print("Error in message", e)
+            print(text_data)
+            print(bytes_data)
+            return
+
         method_name = f"{data.message_event.lower()}_{data.message_type.lower()}"
         method = getattr(self, method_name, None)
         if not method:
@@ -128,6 +135,13 @@ class RouterConsumer(AsyncWebsocketConsumer):
         device.last_seen = datetime.now()
         await sync_to_async(device.save)(update_fields=["last_seen"])
 
+    async def health_check_request(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        device.last_seen = datetime.now()
+        device.wifi_strength = data.payload.get("wifi_strength", -100)
+        await sync_to_async(device.save)(update_fields=["last_seen", "wifi_strength"])
+
+    ############# EVENTS ###########################
     async def on_read_request(self, data: DeviceMessage):
         device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
         result = await check_uid(device, data.payload["uid"])
@@ -141,11 +155,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
         await self.send_actions_request(actions_request)
 
     ########################### response ########################################
-    async def health_check_response(self, data: DeviceMessage):
-        device = await self.get_device_by_mac(data.device_id)
-        device.last_seen = datetime.now()
-        device.wifi_strength = data.payload.get("wifi_strength", -100)
-        await sync_to_async(device.save)(update_fields=["last_seen", "wifi_strength"])
 
     async def set_settings_response(self, data: DeviceMessage):
         pass
