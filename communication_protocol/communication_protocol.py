@@ -41,4 +41,4 @@ class DeviceMessage:
         )
 
     def __str__(self) -> str:
-        return f"{self.message_id} - {self.message_event} - {self.message_type} - {self.device_id} - {self.payload}"
+        return f"DeviceMessage({self.__dict__})"

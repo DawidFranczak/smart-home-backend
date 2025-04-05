@@ -1,9 +1,15 @@
 import datetime
 from django.db import models
 from device.models import Device
+from enum import Enum
 
 
-# Create your models here.
+class LampAction(Enum):
+    ON = "on"
+    OFF = "off"
+    BLINK = "blink"
+
+
 class Lamp(Device):
     light_start = models.TimeField(
         default=datetime.datetime.now().replace(second=0, microsecond=0)
@@ -14,3 +20,7 @@ class Lamp(Device):
     brightness = models.SmallIntegerField(default=100)
     step = models.SmallIntegerField(default=21)
     lighting_time = models.SmallIntegerField(default=10)
+
+    @staticmethod
+    def available_actions():
+        return [action.value for action in LampAction]

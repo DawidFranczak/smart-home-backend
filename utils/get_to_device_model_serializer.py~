@@ -1,0 +1,17 @@
+from aquarium.models import Aquarium
+from aquarium.serializer import AquariumSerializerDevice
+from rfid.models import Rfid
+from rfid.serializer import RfidSerializerDevice
+from lamp.models import Lamp
+from lamp.serializer import LampSerializerDevice
+
+
+def get_to_device_model_serializer(fun: str):
+    serializers = {
+        "aquarium": (Aquarium, AquariumSerializerDevice),
+        "rfid": (Rfid, RfidSerializerDevice),
+        "lamp":(Lamp,LampSerializerDevice)
+    }
+    if not fun in serializers:
+        return None, None
+    return serializers[fun]

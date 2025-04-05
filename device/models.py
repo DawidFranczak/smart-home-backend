@@ -1,7 +1,4 @@
-from turtle import home
-
 from django.db.models import JSONField
-from django.utils import timezone
 from django.db import models
 
 from room.models import Room
@@ -55,11 +52,18 @@ class Device(models.Model):
     def get_router_mac(self):
         return Router.objects.filter(home=self.home).only("mac").first()
 
+    @staticmethod
+    def available_events():
+        return []
+
+    @staticmethod
+    def available_actions():
+        return []
+
 
 class Event(models.Model):
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
-    message = models.CharField(max_length=40)
-    date = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"{self.device} - {self.message} - {self.date}"
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="events")
+    target_device = models.ForeignKey(Device, on_delete=models.CASCADE, null=True)
+    action = models.CharField(max_length=100, null=True)
+    event = models.CharField(max_length=100, null=True)
+    extra_settings = models.JSONField(default=dict)

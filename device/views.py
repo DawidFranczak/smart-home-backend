@@ -1,7 +1,4 @@
-import socket
-from django.contrib.auth.models import User
 from django.shortcuts import get_list_or_404, get_object_or_404
-from django.utils.translation import gettext as _
 
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -11,12 +8,11 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from device.models import Device, DeviceSettings, Event, Router
+from device.models import Device, Router
 from room.models import Room
+from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from .serializers.device import DeviceSerializer
-from .serializers.event import EventSerializer
 from .serializers.router import RouterSerializer
-from .factories import create_device
 
 
 class ListCreateRouter(ListCreateAPIView):
@@ -40,6 +36,12 @@ class ListCreateDevice(ListCreateAPIView):
             return get_list_or_404(
                 Device, home__users=self.request.user, room__isnull=True
             )
+        elif "function" in self.request.query_params:
+            fun = self.request.query_params.get("function")
+            model, _ = get_model_serializer_by_fun(fun.lower())
+            if not model:
+                return Device.objects.none()
+            return get_list_or_404(model, home__users=self.request.user)
         return Device.objects.filter(room__user=self.request.user)
 
     def create(self, request, *args, **kwargs):
@@ -62,8 +64,3 @@ class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
-
-
-class EvengGet(ListAPIView):
-    serializer_class = EventSerializer
-    queryset = Event.objects.all().order_by("-date")[:20]

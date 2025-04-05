@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "temperature",
     "sunblind",
     "light",
+    "event",
 ]
 
 MIDDLEWARE = [
@@ -115,13 +116,6 @@ WSGI_APPLICATION = "smart_home.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
 # Database
 
 DATABASES = {
@@ -130,7 +124,7 @@ DATABASES = {
         "NAME": "postgres",
         "USER": "root",
         "PASSWORD": "postgres",
-        "HOST": "postgres",
+        "HOST": "localhost",
         "PORT": "5432",
     }
 }
@@ -140,13 +134,13 @@ ASGI_APPLICATION = "smart_home.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": ["redis://redis:6379/1"]},
+        "CONFIG": {"hosts": ["redis://localhost:6379/1"]},
     },
 }
 
 # Celery
-CELERY_BROKER_URL = "redis://redis:6379/0"
-CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

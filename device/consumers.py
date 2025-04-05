@@ -1,16 +1,22 @@
 import json
 from datetime import datetime
+
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 
 from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.device_message import set_settings_response
+from communication_protocol.device_message import (
+    set_settings_response,
+    get_event_request,
+)
 from communication_protocol.message_event import MessageEvent
-from communication_protocol.message_type import MessageType
 from device.models import Router, Device
+from rfid.consumer_utils import check_uid
 from device.serializers.device import DeviceSerializer
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from utils.get_to_device_model_serializer import get_to_device_model_serializer
+
+from rfid.models import Card, Rfid
 
 
 class RouterConsumer(AsyncWebsocketConsumer):
@@ -33,7 +39,14 @@ class RouterConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def receive(self, text_data=None, bytes_data=None):
-        data = DeviceMessage.from_json(text_data)
+        try:
+            data = DeviceMessage.from_json(text_data)
+        except Exception as e:
+            print("Error in message", e)
+            print(text_data)
+            print(bytes_data)
+            return
+
         method_name = f"{data.message_event.lower()}_{data.message_type.lower()}"
         method = getattr(self, method_name, None)
         if not method:
@@ -69,7 +82,8 @@ class RouterConsumer(AsyncWebsocketConsumer):
             data.payload["mac"] = data.device_id
             data.payload["home"] = async_to_sync(self._get_router)().home
             data.payload["last_seen"] = datetime.now()
-            model.objects.create(**data.payload)
+            device = model.objects.create(**data.payload)
+            async_to_sync(self.update_frontend)(device)
         except Exception as e:
             print(e)
             return None
@@ -81,13 +95,24 @@ class RouterConsumer(AsyncWebsocketConsumer):
         return data
 
     @sync_to_async
-    def update_frontend(self, device: Device):
+    def update_frontend(self, device: Device, status=200):
         model, _ = get_model_serializer_by_fun(device.fun)
         data = DeviceSerializer(model.objects.get(id=device.pk)).data
         async_to_sync(self.channel_layer.group_send)(
             f"home_{device.home.id}",
-            {"type": "send_to_frontend", "data": data},
+            {"type": "send_to_frontend", "data": {"status": status, "data": data}},
         )
+
+    @sync_to_async
+    def get_event_request(self, device: Device, event: MessageEvent):
+        events = device.events.filter(event=event.value)
+        if not events.exists():
+            return []
+        return [get_event_request(event) for event in events]
+
+    async def send_actions_request(self, actions: list[DeviceMessage]):
+        for action in actions:
+            await self.send(text_data=json.dumps(action.to_json()))
 
     ########################### request ########################################
 
@@ -105,27 +130,73 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def device_disconnect_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
+        if not device:
+            return
         device.last_seen = datetime.now()
         await sync_to_async(device.save)(update_fields=["last_seen"])
 
-    ########################### response ########################################
-    async def health_check_response(self, data: DeviceMessage):
+    async def health_check_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
         device.last_seen = datetime.now()
         device.wifi_strength = data.payload.get("wifi_strength", -100)
         await sync_to_async(device.save)(update_fields=["last_seen", "wifi_strength"])
 
+    ############# EVENTS ###########################
+    async def on_read_request(self, data: DeviceMessage):
+        device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
+        result = await check_uid(device, data.payload["uid"])
+        event = MessageEvent.ON_READ_SUCCESS if result else MessageEvent.ON_READ_FAILURE
+        actions_request = await self.get_event_request(device, event)
+        await self.send_actions_request(actions_request)
+
+    async def on_click_request(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        actions_request = await self.get_event_request(device, MessageEvent.ON_CLICK)
+        await self.send_actions_request(actions_request)
+
+    ########################### response ########################################
+
     async def set_settings_response(self, data: DeviceMessage):
         pass
 
-    async def set_rgb_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_RGB)
+    async def add_tag_response(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        rfid = await sync_to_async(Rfid.objects.get)(pk=device.id)
+        uid = data.payload["uid"]
+        status = 400
+        if uid:
+            cards = await sync_to_async(Card.objects.filter)(uid=uid)
+            if await sync_to_async(cards.exists)():
+                status = 409
+            else:
+                await sync_to_async(Card.objects.create)(
+                    rfid=rfid,
+                    uid=uid,
+                    name=data.payload["name"],
+                )
+                status = 201
+        rfid.pending.remove(MessageEvent.ADD_TAG.value)
+        await sync_to_async(rfid.save)(update_fields=["pending"])
+        await self.update_frontend(rfid, status=status)
 
-    async def set_fluo_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_FLUO)
+    async def access_granted_response(self, data: DeviceMessage):
+        # print("access_granted_response", data)
+        pass
 
-    async def set_led_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_LED)
+    async def access_denied_response(self, data: DeviceMessage):
+        # print("access_denied_response", data)
+        pass
+
+    async def check_uid_response(self, data: DeviceMessage):
+        # print("check_uid_response", data)
+        pass
+
+    async def turn_on_response(self, data: DeviceMessage):
+        # print(data)
+        pass
+
+    async def blink_response(self, data: DeviceMessage):
+        pass
 
     async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
         device = await self.get_device_by_mac(data.device_id)

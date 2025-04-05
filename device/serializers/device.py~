@@ -18,6 +18,7 @@ from stairs.models import Stairs
 from light.serializer import LightSerializer
 from light.models import Light
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
+from .event import EventSerializer
 
 from ..models import (
     Device,
@@ -27,6 +28,7 @@ from ..models import (
 class DeviceSerializer(ModelSerializer):
     is_favourite = serializers.SerializerMethodField()
     is_online = serializers.SerializerMethodField()
+
     class Meta:
         model = Device
         exclude = [
@@ -41,7 +43,7 @@ class DeviceSerializer(ModelSerializer):
     def get_is_favourite(self, obj: Device):
         if not obj.room:
             return False
-        return obj.room.user.favourite.device.filter(pk=obj.id).exists()
+        return obj.room.user.favourite.device.filter(pk=obj.pk).exists()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -50,6 +52,8 @@ class DeviceSerializer(ModelSerializer):
             model_class.objects.get(pk=instance.id), context=self.context
         )
         data = serializer.data
+
+        data["events"] = EventSerializer(instance.events.all(), many=True).data
         representation.update(data)
         return representation
 

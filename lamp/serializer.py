@@ -1,18 +1,11 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.template.context_processors import request
 from rest_framework import serializers
-from device.websocket_sender import send_data
+
+from communication_protocol.device_message import set_settings_request, message_request
+from communication_protocol.message_event import MessageEvent
 from .models import Lamp
-
-# class LampSerializer(ModelSerializer):
-
-#     def update(self, instance, validated_data):
-#         send_data(f"bs{validated_data["brightness"]}",instance.ip, instance.port)
-#         send_data(f"sp{validated_data["step"]}",instance.ip, instance.port)
-#         send_data(f"te{validated_data["lighting_time"]}",instance.ip, instance.port)
-#         return super().update(instance, validated_data)
-
-#     class Meta:
-#         model = Lamp
-#         exclude = ["fun","ip","port","user"]
 
 
 class LampSerializer(serializers.ModelSerializer):
@@ -26,12 +19,16 @@ class LampSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
-        data = LampWebSocketSerializer(instance).data
-        send_data(instance, data)
+        data = LampSerializerDevice(instance).data
+        request = set_settings_request(instance, data)
+        async_to_sync(get_channel_layer().group_send)(
+            f"router_{instance.get_router_mac()}",
+            {"type": "router_send", "data": request.to_json()},
+        )
         return instance
 
 
-class LampWebSocketSerializer(serializers.ModelSerializer):
+class LampSerializerDevice(serializers.ModelSerializer):
     class Meta:
         model = Lamp
-        fields = ["mac", "ip", "port", "brightness", "step", "lighting_time"]
+        fields = ["brightness", "step", "lighting_time"]
