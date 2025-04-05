@@ -1,9 +1,7 @@
 from asgiref.sync import sync_to_async
-from rfid.check_uid_response import CheckUIDResponse
 from rfid.models import Rfid, Card
 
 
 @sync_to_async
-def check_uid(device: Rfid, uid: int) -> CheckUIDResponse:
-    result = Card.objects.filter(rfid=device, uid=uid).exists()
-    return CheckUIDResponse.ACCESS_GRANTED if result else CheckUIDResponse.ACCESS_DENIED
+def check_uid(device: Rfid, uid: int) -> bool:
+    return Card.objects.filter(rfid=device, uid=uid).exists()

@@ -13,12 +13,20 @@ class RfidEvent(Enum):
     ON_HOLD = "on_hold"
 
 
-# Create your models here.
+class RfidAction(Enum):
+    ACCESS_GRANTED = "access_granted"
+    ACCESS_DENIED = "access_denied"
+
+
 class Rfid(Device):
 
     @staticmethod
     def available_events():
         return [event.value for event in RfidEvent]
+
+    @staticmethod
+    def available_actions():
+        return [action.value for action in RfidAction]
 
 
 class Card(models.Model):

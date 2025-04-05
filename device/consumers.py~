@@ -5,18 +5,18 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 
 from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.device_message import set_settings_response
+from communication_protocol.device_message import (
+    set_settings_response,
+    get_event_request,
+)
 from communication_protocol.message_event import MessageEvent
-from communication_protocol.rfid_message import check_uid_response
 from device.models import Router, Device
-from rfid.check_uid_response import CheckUIDResponse
 from rfid.consumer_utils import check_uid
 from device.serializers.device import DeviceSerializer
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from utils.get_to_device_model_serializer import get_to_device_model_serializer
 
 from rfid.models import Card, Rfid
-from lamp.consumer_utils import lamp_turn_on_request
 
 
 class RouterConsumer(AsyncWebsocketConsumer):
@@ -96,6 +96,17 @@ class RouterConsumer(AsyncWebsocketConsumer):
             {"type": "send_to_frontend", "data": {"status": status, "data": data}},
         )
 
+    @sync_to_async
+    def get_event_request(self, device: Device, event: MessageEvent):
+        events = device.events.filter(event=event.value)
+        if not events.exists():
+            return []
+        return [get_event_request(event) for event in events]
+
+    async def send_actions_request(self, actions: list[DeviceMessage]):
+        for action in actions:
+            await self.send(text_data=json.dumps(action.to_json()))
+
     ########################### request ########################################
 
     async def device_connect_request(self, data: DeviceMessage):
@@ -117,18 +128,17 @@ class RouterConsumer(AsyncWebsocketConsumer):
         device.last_seen = datetime.now()
         await sync_to_async(device.save)(update_fields=["last_seen"])
 
-    async def check_uid_request(self, data: DeviceMessage):
+    async def on_read_request(self, data: DeviceMessage):
         device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
         result = await check_uid(device, data.payload["uid"])
-        response = check_uid_response(data.device_id, data.message_id, result)
-        await self.send(text_data=json.dumps(response.to_json()))
-        if result == CheckUIDResponse.ACCESS_DENIED:
-            return
-        controlled_lamp = await sync_to_async(lambda: device.controlled_lamp)()
-        request = await lamp_turn_on_request(controlled_lamp)
-        print("request", request)
-        await self.send(text_data=json.dumps(request.to_json()))
+        event = MessageEvent.ON_READ_SUCCESS if result else MessageEvent.ON_READ_FAILURE
+        actions_request = await self.get_event_request(device, event)
+        await self.send_actions_request(actions_request)
 
+    async def on_click_request(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        actions_request = await self.get_event_request(device, MessageEvent.ON_CLICK)
+        await self.send_actions_request(actions_request)
     ########################### response ########################################
     async def health_check_response(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
@@ -138,15 +148,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def set_settings_response(self, data: DeviceMessage):
         pass
-
-    async def set_rgb_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_RGB)
-
-    async def set_fluo_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_FLUO)
-
-    async def set_led_response(self, data: DeviceMessage):
-        await self._update_pending(data, MessageEvent.SET_LED)
 
     async def add_tag_response(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
@@ -168,10 +169,24 @@ class RouterConsumer(AsyncWebsocketConsumer):
         await sync_to_async(rfid.save)(update_fields=["pending"])
         await self.update_frontend(rfid, status=status)
 
+    async def access_granted_response(self, data: DeviceMessage):
+        # print("access_granted_response", data)
+        pass
+
+    async def access_denied_response(self, data: DeviceMessage):
+        # print("access_denied_response", data)
+        pass
+
     async def check_uid_response(self, data: DeviceMessage):
-        print("check_uid_response", data)
+        # print("check_uid_response", data)
+        pass
+
     async def turn_on_response(self, data: DeviceMessage):
-        print(data)
+        # print(data)
+        pass
+
+    async def blink_response(self, data: DeviceMessage):
+        pass
 
     async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
         device = await self.get_device_by_mac(data.device_id)
@@ -179,4 +194,3 @@ class RouterConsumer(AsyncWebsocketConsumer):
             device.pending.remove(event.value)
             await sync_to_async(device.save)(update_fields=["pending"])
             await self.update_frontend(device)
-

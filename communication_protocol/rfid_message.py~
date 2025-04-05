@@ -9,5 +9,5 @@ def add_card_request(instance: Rfid, name: str) -> DeviceMessage:
     return message_request(MessageEvent.ADD_TAG, instance.mac, {"name": name})
 
 
-def on_read_success_request() -> list[DeviceMessage]:
+def on_read_success_request() -> DeviceMessage:
     return message_response(MessageEvent.READ_SUCCESS, "success", {})

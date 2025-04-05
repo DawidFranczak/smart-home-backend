@@ -3,6 +3,7 @@ from uuid import uuid4
 from communication_protocol.communication_protocol import DeviceMessage
 from communication_protocol.message_event import MessageEvent
 from communication_protocol.message_type import MessageType
+from device.models import Event
 
 
 def set_settings_request(instance, payload: dict):
@@ -26,6 +27,16 @@ def set_settings_response(message_id, device_data, serialized_device_data):
         message_type=MessageType.RESPONSE,
         device_id=device_data,
         payload=serialized_device_data,
+    )
+
+
+def get_event_request(event: Event):
+    return DeviceMessage(
+        message_id=uuid4().hex,
+        message_type=MessageType.REQUEST,
+        message_event=MessageEvent(event.action),
+        device_id=event.target_device.mac,
+        payload=event.extra_settings,
     )
 
 
