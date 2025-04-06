@@ -8,3 +8,10 @@ class ButtonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Button
         exclude = ["fun", "id", "port", "wifi_strength", "mac"]
+
+
+class ButtonSerializerDevice(serializers.ModelSerializer):
+
+    class Meta:
+        model = Button
+        fields = ["name"]
