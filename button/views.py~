@@ -1,3 +1,5 @@
+from multiprocessing.managers import BaseManager
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 
@@ -17,5 +19,5 @@ class ButtonListAPIView(ListAPIView):
 class ButtonRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     serializer_class = DeviceSerializer
 
-    def get_queryset(self):
+    def get_queryset(self) -> BaseManager[Button]:
         return Button.objects.filter(room__user=self.request.user)

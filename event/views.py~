@@ -27,9 +27,8 @@ class CreateDeleteEvent(APIView):
         return Response(EventSerializer(event).data, 200)
 
     def delete(self, request, *args, **kwargs):
-        # event = get_object_or_404(Event, pk=kwargs["pk"])
-        # event.delete()
-        print("delete")
+        event = get_object_or_404(Event, pk=kwargs["pk"])
+        event.delete()
         return Response({}, 200)
 
 
