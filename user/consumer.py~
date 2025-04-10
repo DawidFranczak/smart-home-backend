@@ -19,7 +19,7 @@ class UserConsumer(AsyncWebsocketConsumer):
         self.user_instance = user
         await self.channel_layer.group_add(f"home_{home_id}", self.channel_name)
         print(self.channel_layer)
-        print("connect", f"home_{home_id}")
+        print("connect",f"home_{home_id}")
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):

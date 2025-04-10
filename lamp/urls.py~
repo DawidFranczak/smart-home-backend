@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LampGetAll, RetrieveUpdateDestroyLamp
+from .views import LampGetAll, RetrieveUpdateDestroyLamp, LampToggleLight
 
 urlpatterns = [
     path("", LampGetAll.as_view()),

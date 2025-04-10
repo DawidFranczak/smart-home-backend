@@ -24,3 +24,5 @@ class MessageEvent(Enum):
     ON = "on"
     OFF = "off"
     BLINK = "blink"
+    ACCESS_GRANTED = "access_granted"
+    ACCESS_DENIED = "access_denied"
