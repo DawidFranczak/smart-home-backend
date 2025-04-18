@@ -115,14 +115,9 @@ class RouterConsumer(AsyncWebsocketConsumer):
     def get_router_serialized_data(self):
         return RouterSerializer(self.router).data
 
-    # @sync_to_async
-    # def update_frontend(self, device: Device, status=200):
-    #     model, _ = get_model_serializer_by_fun(device.fun)
-    #     data = DeviceSerializer(model.objects.get(id=device.pk)).data
-    #     async_to_sync(self.channel_layer.group_send)(
-    #         f"home_{device.home.id}",
-    #         {"type": "send_to_frontend", "data": {"status": status, "data": data}},
-    #     )
+    @sync_to_async
+    def get_device_serialized_data_to_frontend(self, device: Device):
+        return DeviceSerializer(device).data
 
     @sync_to_async
     def get_event_request(self, device: Device, event: MessageEvent):
@@ -135,12 +130,12 @@ class RouterConsumer(AsyncWebsocketConsumer):
         for action in actions:
             await self.send(text_data=json.dumps(action.to_json()))
 
-    async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
-        device = await self.get_device_by_mac(data.device_id)
-        if event.value in device.pending:
-            device.pending.remove(event.value)
-            await sync_to_async(device.save)(update_fields=["pending"])
-            await self.update_frontend(device)
+    # async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
+    #     device = await self.get_device_by_mac(data.device_id)
+    #     if event.value in device.pending:
+    #         device.pending.remove(event.value)
+    #         await sync_to_async(device.save)(update_fields=["pending"])
+    #         await self.update_frontend(device)
 
     async def send_to_frontend(
         self, status: int, action: FrontendMessageType, data: dict
@@ -161,25 +156,35 @@ class RouterConsumer(AsyncWebsocketConsumer):
         if not device:
             return
         device.last_seen = datetime.now()
+        device.is_online = True
+        device.pending = []
         serialized_device_data = await self.serialized_device_to_device(device)
         message = set_settings_response(
             data.message_id, data.device_id, serialized_device_data
         )
-        await sync_to_async(device.save)(update_fields=["last_seen"])
+        await sync_to_async(device.save)(
+            update_fields=["last_seen", "is_online", "pending"]
+        )
         await self.send(text_data=json.dumps(message.to_json()))
+        device_data = await self.get_device_serialized_data_to_frontend(device)
+        await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
 
     async def device_disconnect_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
         if not device:
             return
         device.last_seen = datetime.now()
-        await sync_to_async(device.save)(update_fields=["last_seen"])
+        device.is_online = False
+        await sync_to_async(device.save)(update_fields=["last_seen", "is_online"])
+        device_data = await self.get_device_serialized_data_to_frontend(device)
+        await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
 
     async def health_check_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
         device.last_seen = datetime.now()
+        device.is_online = True
         device.wifi_strength = data.payload.get("wifi_strength", -100)
-        await sync_to_async(device.save)(update_fields=["last_seen", "wifi_strength"])
+        await sync_to_async(device.save)(update_fields=["last_seen", "wifi_strength", "is_online"])
 
     ############# EVENTS ###########################
     async def on_read_request(self, data: DeviceMessage):
@@ -222,7 +227,10 @@ class RouterConsumer(AsyncWebsocketConsumer):
                 status = 201
         rfid.pending.remove(MessageEvent.ADD_TAG.value)
         await sync_to_async(rfid.save)(update_fields=["pending"])
-        await self.update_frontend(rfid, status=status)
+        device_data = await self.get_device_serialized_data_to_frontend(device)
+        await self.send_to_frontend(
+            status, FrontendMessageType.UPDATE_DEVICE, device_data
+        )
 
     async def access_granted_response(self, data: DeviceMessage):
         # print("access_granted_response", data)

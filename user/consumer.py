@@ -1,4 +1,6 @@
 import json
+from tokenize import TokenError
+
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from rest_framework_simplejwt.tokens import AccessToken
@@ -13,9 +15,10 @@ class UserConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         token = self.scope["url_route"]["kwargs"]["token"]
         user = await self.validate_user(token)
-        home_id = await self.get_home_id(user)
         if not user:
             await self.close()
+            return
+        home_id = await self.get_home_id(user)
         self.user_instance = user
         await self.channel_layer.group_add(f"home_{home_id}", self.channel_name)
         print(self.channel_layer)
@@ -34,12 +37,16 @@ class UserConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def validate_user(self, token):
-        access_token = AccessToken(token)
-        user_id = access_token.payload.get("user_id", 0)
-        user = User.objects.filter(id=user_id)
-        if user.exists():
-            return user.first()
-        return None
+        try:
+            access_token = AccessToken(token)
+            user_id = access_token.payload.get("user_id", 0)
+            user = User.objects.filter(id=user_id)
+            if user.exists():
+                return user.first()
+            return None
+        except Exception as e:
+            print(e)
+            return None
 
     @sync_to_async
     def get_home_id(self, user):

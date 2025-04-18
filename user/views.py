@@ -37,7 +37,6 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         refresh_token: Token = RefreshToken.for_user(user)
-        print(refresh_token)
         response = Response()
         response.status_code = status.HTTP_200_OK
         response.set_cookie(

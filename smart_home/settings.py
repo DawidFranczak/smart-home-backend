@@ -26,30 +26,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-_d76k^%n@lke_zez8*l%u$e^xzw-a9qa+#021(%#im+#4z7lc!"
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:4173",
     "http://localhost:8000",
-    "http://0.0.0.0:8000",
+    "http://192.168.1.142:8000",
     "http://192.168.1.142:5173",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:4173",
     "http://localhost:8000",
-    "http://0.0.0.0:8000",
+    "http://192.168.1.142:8000",
     "http://192.168.1.142:5173",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "ngrok-skip-browser-warning",
 ]
-# Application definition
 
 INSTALLED_APPS = [
     "corsheaders",
@@ -117,30 +114,30 @@ WSGI_APPLICATION = "smart_home.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Database
-
+DB_HOST = "localhost" if DEBUG else "postgres"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "postgres",
         "USER": "root",
         "PASSWORD": "postgres",
-        "HOST": "localhost",
+        "HOST": DB_HOST,
         "PORT": "5432",
     }
 }
-
+REDIS = "localhost" if DEBUG else "redis"
 # Channels
 ASGI_APPLICATION = "smart_home.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": ["redis://localhost:6379/1"]},
+        "CONFIG": {"hosts": [f"redis://{REDIS}:6379/1"]},
     },
 }
 
 # Celery
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_BROKER_URL = f"redis://{REDIS}:6379/0"
+CELERY_RESULT_BACKEND = f"redis://{REDIS}:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
