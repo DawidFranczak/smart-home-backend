@@ -32,12 +32,13 @@ class DeviceMessage:
     @classmethod
     def from_json(cls, json_str: str) -> "DeviceMessage":
         data = json.loads(json_str)
+        print(data)
         return cls(
             message_id=data["message_id"],
             message_event=data["message_event"],
             message_type=data["message_type"],
             device_id=data["device_id"],
-            payload=data["payload"],
+            payload=data.get("payload", {}),
         )
 
     def __str__(self) -> str:

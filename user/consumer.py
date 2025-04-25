@@ -21,15 +21,13 @@ class UserConsumer(AsyncWebsocketConsumer):
         home_id = await self.get_home_id(user)
         self.user_instance = user
         await self.channel_layer.group_add(f"home_{home_id}", self.channel_name)
-        print(self.channel_layer)
-        print("connect", f"home_{home_id}")
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):
-        print("receive", text_data)
+        # print("receive", text_data)
+        pass
 
     async def send_to_frontend(self, event):
-        print("send_to_frontend", event)
         await self.send(text_data=json.dumps(event))
 
     async def disconnect(self, code):
