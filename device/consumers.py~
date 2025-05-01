@@ -74,10 +74,8 @@ class RouterConsumer(AsyncWebsocketConsumer):
             FrontendMessageType.UPDATE_ROUTER,
             await self.get_router_serialized_data(),
         )
-        print("disconnect", code)
 
     async def router_send(self, event):
-        print(type(event))
         if not isinstance(event, str):
             event = event["data"]
         await self.send(text_data=event)
@@ -96,12 +94,16 @@ class RouterConsumer(AsyncWebsocketConsumer):
         if device.exists():
             return device.first()
         try:
-            model, _ = get_model_serializer_by_fun(data.payload["fun"])
+            model, serializer = get_model_serializer_by_fun(data.payload["fun"])
             data.payload["mac"] = data.device_id
             data.payload["home"] = self.router.home
             data.payload["last_seen"] = datetime.now()
+            data.payload["is_online"] = True
             device = model.objects.create(**data.payload)
-            async_to_sync(self.update_frontend)(device)
+            device_data = serializer(device).data
+            async_to_sync(self.send_to_frontend)(
+                200, FrontendMessageType.NEW_DEVICE_CONNECTED, device_data
+            )
         except Exception as e:
             print(e)
             return None
@@ -130,14 +132,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
     async def send_actions_request(self, actions: list[DeviceMessage]):
         for action in actions:
             await self.router_send(action.to_json())
-            # await self.send(text_data=json.dumps(action.to_json()))
-
-    # async def _update_pending(self, data: DeviceMessage, event: MessageEvent):
-    #     device = await self.get_device_by_mac(data.device_id)
-    #     if event.value in device.pending:
-    #         device.pending.remove(event.value)
-    #         await sync_to_async(device.save)(update_fields=["pending"])
-    #         await self.update_frontend(device)
 
     async def send_to_frontend(
         self, status: int, action: FrontendMessageType, data: dict
@@ -168,7 +162,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
             update_fields=["last_seen", "is_online", "pending"]
         )
         await self.router_send(message.to_json())
-        # await self.send(text_data=message.to_json())
         device_data = await self.get_device_serialized_data_to_frontend(device)
         await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
 
@@ -178,7 +171,8 @@ class RouterConsumer(AsyncWebsocketConsumer):
             return
         device.last_seen = datetime.now()
         device.is_online = False
-        await sync_to_async(device.save)(update_fields=["last_seen", "is_online"])
+        device.pending = []
+        await sync_to_async(device.save)(update_fields=["last_seen", "is_online","pending"])
         device_data = await self.get_device_serialized_data_to_frontend(device)
         await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
 

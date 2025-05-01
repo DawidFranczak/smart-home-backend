@@ -34,7 +34,6 @@ class AquariumRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
 
         if not new_value:
             return Response(self.get_serializer(instance).data)
-        print("new_value", new_value)
         serializer = self.get_serializer(instance, data=new_value, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
