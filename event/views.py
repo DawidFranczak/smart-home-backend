@@ -3,9 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from device.models import Device, Event
+from device.serializers.device import DeviceSerializer
 from event.serializer import EventSerializer
 from event.utils import get_models_with_supported_actions
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
+from utils.web_socket_message import update_frontend_device
 
 
 class CreateDeleteEvent(APIView):
@@ -22,11 +24,18 @@ class CreateDeleteEvent(APIView):
             event=request.data["event"],
             extra_settings=request.data["extra_settings"],
         )
-        return Response(EventSerializer(event).data, 200)
+        update_frontend_device(
+            event.device.room.home.id, DeviceSerializer(event.device).data
+        )
+        return Response(EventSerializer(event).data, 201)
 
     def delete(self, request, *args, **kwargs):
         event = get_object_or_404(Event, pk=kwargs["pk"])
+        device_id = event.device.id
         event.delete()
+        device = get_object_or_404(Device, pk=device_id)
+        device_new_data = DeviceSerializer(device).data
+        update_frontend_device(device.room.home.id, device_new_data)
         return Response({}, 200)
 
 

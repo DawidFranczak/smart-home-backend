@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from communication_protocol.message_event import MessageEvent
 from device.serializers.device import DeviceSerializer
 from user.frontend_message_type import FrontendMessageType
+from utils.web_socket_message import update_frontend_device
 from .command import add_card
 from .serializer import CardSerializer
 from .models import Card, Rfid
@@ -41,14 +42,7 @@ class CardDestroy(DestroyAPIView):
         rfid_id = self.get_object().rfid.id
         super().delete(request, *args, **kwargs)
         new_data = DeviceSerializer(Rfid.objects.get(id=rfid_id)).data
-        async_to_sync(get_channel_layer().group_send)(
-            f"home_{home_id}",
-            {
-                "type": "send_to_frontend",
-                "action": FrontendMessageType.UPDATE_DEVICE.value,
-                "data": {"status": 200, "data": new_data},
-            },
-        )
+        update_frontend_device(home_id, new_data)
         return Response(status=204)
 
 
