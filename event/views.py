@@ -24,9 +24,7 @@ class CreateDeleteEvent(APIView):
             event=request.data["event"],
             extra_settings=request.data["extra_settings"],
         )
-        update_frontend_device(
-            event.device.room.home.id, DeviceSerializer(event.device).data
-        )
+        update_frontend_device(event.device)
         return Response(EventSerializer(event).data, 201)
 
     def delete(self, request, *args, **kwargs):
@@ -34,8 +32,7 @@ class CreateDeleteEvent(APIView):
         device_id = event.device.id
         event.delete()
         device = get_object_or_404(Device, pk=device_id)
-        device_new_data = DeviceSerializer(device).data
-        update_frontend_device(device.room.home.id, device_new_data)
+        update_frontend_device(device.home.id)
         return Response({}, 200)
 
 

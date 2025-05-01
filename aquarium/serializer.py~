@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from communication_protocol.device_message import set_settings_request
 from utils.check_hour_in_range import check_hour_in_range
+from utils.web_socket_message import send_to_device
 from .models import Aquarium
 
 
@@ -29,7 +30,7 @@ class AquariumSerializer(serializers.ModelSerializer):
         led_start = data.get("led_start", self.instance.led_start)
         led_stop = data.get("led_stop", self.instance.led_stop)
         led_mode = check_hour_in_range(led_start, led_stop)
-        data["led_mode"] = led_mode
+        self.instance.led_mode = led_mode
         return data
 
     def validate_fluo_lamp_time(self, data):
@@ -38,26 +39,23 @@ class AquariumSerializer(serializers.ModelSerializer):
         fluo_start = data.get("fluo_start", self.instance.fluo_start)
         fluo_stop = data.get("fluo_stop", self.instance.fluo_stop)
         fluo_mode = check_hour_in_range(fluo_start, fluo_stop)
-        data["fluo_mode"] = fluo_mode
+        self.instance.fluo_mode = fluo_mode
         return data
 
     def validate_mode(self, data):
         fluo_mode = check_hour_in_range(
             self.instance.fluo_start, self.instance.fluo_stop
         )
-        data["fluo_mode"] = fluo_mode
+        self.instance.fluo_mode = fluo_mode
         led_mode = check_hour_in_range(self.instance.led_start, self.instance.led_stop)
-        data["led_mode"] = led_mode
+        self.instance.led_mode = led_mode
         return data
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
         new_data = AquariumSerializerDevice(instance).data
         request = set_settings_request(instance, new_data)
-        async_to_sync(get_channel_layer().group_send)(
-            f"router_{instance.get_router_mac()}",
-            {"type": "router_send", "data": request.to_json()},
-        )
+        send_to_device(instance.get_router_mac(), request.to_json())
         return instance
 
 
