@@ -1,8 +1,14 @@
-from django.db import models
 from device.models import Device
-from lamp.models import Lamp
+from enum import Enum
 
 
-# Create your models here.
+class ButtonEvent(Enum):
+    ON_CLICK = "on_click"
+    ON_HOLD = "on_hold"
+
+
 class Button(Device):
-    controlled_lamp = models.ForeignKey(Lamp, on_delete=models.CASCADE, null=True)
+
+    @staticmethod
+    def available_events():
+        return [event.value for event in ButtonEvent]

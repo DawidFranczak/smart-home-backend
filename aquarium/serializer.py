@@ -1,9 +1,8 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from rest_framework import serializers
 
 from communication_protocol.device_message import set_settings_request
 from utils.check_hour_in_range import check_hour_in_range
+from utils.web_socket_message import send_to_device
 from .models import Aquarium
 
 
@@ -54,10 +53,7 @@ class AquariumSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
         new_data = AquariumSerializerDevice(instance).data
         request = set_settings_request(instance, new_data)
-        async_to_sync(get_channel_layer().group_send)(
-            f"router_{instance.get_router_mac()}",
-            {"type": "router_send", "data": request.to_json()},
-        )
+        send_to_device(instance.get_router_mac(), request.to_json())
         return instance
 
 

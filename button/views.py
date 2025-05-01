@@ -1,3 +1,21 @@
-from django.shortcuts import render
+from django.contrib.auth.base_user import AbstractBaseUser
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
+
+from device.serializers.device import DeviceSerializer
+from .models import Button
+
 
 # Create your views here.
+class ButtonListAPIView(ListAPIView):
+    serializer_class = DeviceSerializer
+
+    def get_queryset(self):
+        user: AbstractBaseUser = self.request.user
+        return Button.objects.filter(room__user=user)
+
+
+class ButtonRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
+    serializer_class = DeviceSerializer
+
+    def get_queryset(self):
+        return Button.objects.filter(room__user=self.request.user)

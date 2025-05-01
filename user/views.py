@@ -37,7 +37,6 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         refresh_token: Token = RefreshToken.for_user(user)
-        print(refresh_token)
         response = Response()
         response.status_code = status.HTTP_200_OK
         response.set_cookie(
@@ -124,6 +123,7 @@ class FavouriteView(APIView):
     def put(self, request, *args, **kwargs):
         user = request.user
         action = request.data["is_favourite"]
+        data = None
         if request.data["type"] == "room":
             obj = get_object_or_404(Room, pk=request.data["id"], user=user)
             (
@@ -131,6 +131,8 @@ class FavouriteView(APIView):
                 if action
                 else user.favourite.room.add(obj)
             )
+            data = RoomSerializer(obj).data
+
         elif request.data["type"] == "device":
             obj = get_object_or_404(Device, pk=request.data["id"])
             (
@@ -138,7 +140,8 @@ class FavouriteView(APIView):
                 if action
                 else user.favourite.device.add(obj)
             )
-        return Response({}, status=status.HTTP_200_OK)
+            data = DeviceSerializer(obj).data
+        return Response(data, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         favourite, _ = Favourite.objects.get_or_create(user=request.user)

@@ -20,6 +20,7 @@ class Lamp(Device):
     brightness = models.SmallIntegerField(default=100)
     step = models.SmallIntegerField(default=21)
     lighting_time = models.SmallIntegerField(default=10)
+
     @staticmethod
     def available_actions():
         return [action.value for action in LampAction]

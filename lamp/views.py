@@ -19,10 +19,3 @@ class RetrieveUpdateDestroyLamp(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Lamp.objects.filter(room__user=self.request.user)
-
-
-class LampToggleLight(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request, *args, **kwargs):
-        return Response(status=200)

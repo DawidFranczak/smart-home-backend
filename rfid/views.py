@@ -1,18 +1,17 @@
-from django.contrib.auth.models import User
+from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     DestroyAPIView,
 )
-
+from rest_framework.response import Response
 from communication_protocol.message_event import MessageEvent
 from device.serializers.device import DeviceSerializer
+from utils.web_socket_message import update_frontend_device
 from .command import add_card
-from .serializer import CardSerializer, RfidSerializer
+from .serializer import CardSerializer
 from .models import Card, Rfid
-
-from rest_framework.response import Response
 
 
 class RfidListCreate(ListCreateAPIView):
@@ -36,6 +35,12 @@ class CardDestroy(DestroyAPIView):
             rfid__room__user=self.request.user, id=self.kwargs["pk"]
         )
 
+    def delete(self, request, *args, **kwargs):
+        rfid_id = self.get_object().rfid.id
+        super().delete(request, *args, **kwargs)
+        update_frontend_device(Rfid.objects.get(id=rfid_id))
+        return Response(status=204)
+
 
 class CardListCreate(ListCreateAPIView):
     serializer_class = CardSerializer
@@ -51,7 +56,8 @@ class CardListCreate(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         rfid = validated_data["rfid"]
-        rfid.pending.append(MessageEvent.ADD_TAG.value)
+        if not MessageEvent.ADD_TAG.value in rfid.pending:
+            rfid.pending.append(MessageEvent.ADD_TAG.value)
         rfid.save()
         serializer_data = DeviceSerializer(rfid).data
         add_card(rfid, validated_data["name"])

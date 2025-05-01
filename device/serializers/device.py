@@ -11,7 +11,7 @@ from ..models import (
 
 class DeviceSerializer(ModelSerializer):
     is_favourite = serializers.SerializerMethodField()
-    is_online = serializers.SerializerMethodField()
+    # is_online = serializers.SerializerMethodField()
 
     class Meta:
         model = Device
@@ -21,8 +21,8 @@ class DeviceSerializer(ModelSerializer):
         ]
         read_only_fields = ["ip", "last_seen"]
 
-    def get_is_online(self, obj: Device):
-        return obj.last_seen > timezone.now() - timezone.timedelta(minutes=10)
+    # def get_is_online(self, obj: Device):
+    #     return obj.last_seen > timezone.now() - timezone.timedelta(minutes=10)
 
     def get_is_favourite(self, obj: Device):
         if not obj.room:

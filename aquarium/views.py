@@ -6,7 +6,6 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 
 from device.serializers.device import DeviceSerializer
-from .serializer import AquariumSerializer
 from .models import Aquarium
 
 

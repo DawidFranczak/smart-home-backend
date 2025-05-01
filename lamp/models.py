@@ -8,6 +8,7 @@ class LampAction(Enum):
     ON = "on"
     OFF = "off"
     BLINK = "blink"
+    TOGGLE = "toggle"
 
 
 class Lamp(Device):

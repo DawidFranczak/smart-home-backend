@@ -1,11 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import UniqueTogetherValidator
 
-from communication_protocol.message_event import MessageEvent
-from lamp.models import Lamp
-
 from .models import Rfid, Card
-from .command import add_card
 
 
 class RfidSerializer(serializers.ModelSerializer):

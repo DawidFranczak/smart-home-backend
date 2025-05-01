@@ -42,6 +42,7 @@ class Device(models.Model):
     mac = models.CharField(max_length=100, default="")
     wifi_strength = models.IntegerField(default=0)
     pending = JSONField(default=list, blank=True)
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

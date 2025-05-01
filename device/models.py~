@@ -38,10 +38,11 @@ class Device(models.Model):
     ip = models.CharField(max_length=100)
     port = models.IntegerField()
     fun = models.CharField(max_length=100, default="")
-    last_seen = models.DateTimeField(auto_created=True)
+    last_seen = models.DateTimeField(auto_created=True, auto_now=True)
     mac = models.CharField(max_length=100, default="")
     wifi_strength = models.IntegerField(default=0)
     pending = JSONField(default=list, blank=True)
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -65,4 +66,5 @@ class Event(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="events")
     target_device = models.ForeignKey(Device, on_delete=models.CASCADE, null=True)
     action = models.CharField(max_length=100, null=True)
+    event = models.CharField(max_length=100, null=True)
     extra_settings = models.JSONField(default=dict)
