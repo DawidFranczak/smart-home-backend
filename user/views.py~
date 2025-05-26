@@ -104,7 +104,7 @@ class RefreshAccessToken(APIView):
 
     def get(self, request, *args, **kwargs) -> Response:
         try:
-            if request.headers["X-Client-Type"] == "mobile":
+            if request.headers.get("X-Client-Type") == "mobile":
                 refresh_token_str = request.headers["Token"]
             else:
                 refresh_token_str: str = request.COOKIES["refresh"]
@@ -126,7 +126,7 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             if request.headers["X-Client-Type"] == "mobile":
-                return Response({}, status=status.HTTP_204_NO_CONTENT)
+                return Response({}, status=status.HTTP_200_OK)
             response = Response({}, status=status.HTTP_204_NO_CONTENT)
             response.delete_cookie("refresh", path="/")
             return response

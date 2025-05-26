@@ -104,10 +104,10 @@ class RefreshAccessToken(APIView):
 
     def get(self, request, *args, **kwargs) -> Response:
         try:
-            if request.headers["X-Client-Type"] == "mobile":
+            if request.headers.get("X-Client-Type") == "mobile":
                 refresh_token_str = request.headers["Token"]
             else:
-                refresh_token_str: str = request.COOKIES["refresh"]
+                refresh_token_str: str = request.COOKIES.get("refresh")
             refresh_token = RefreshToken(refresh_token_str)
             return Response(
                 {"access": str(refresh_token.access_token)}, status=status.HTTP_200_OK
