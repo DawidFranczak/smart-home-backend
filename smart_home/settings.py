@@ -33,15 +33,19 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
+    "http://localhost:8081",
     "http://192.168.1.142:8000",
+    "http://192.168.0.231:8000",
     "http://192.168.1.142:5173",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:8081",
     "http://localhost:8000",
     "http://192.168.1.142:8000",
     "http://192.168.1.142:5173",
+    "http://192.168.0.231:8000",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
