@@ -30,13 +30,21 @@ class LoginView(APIView):
         username: str = request.data["username"]
         password: str = request.data["password"]
         user: AbstractUser | None = authenticate(username=username, password=password)
-
         if user is None:
             return Response(
                 {"message": "Błędny login lub hasło."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         refresh_token: Token = RefreshToken.for_user(user)
+        if request.headers.get("X-Client-Type") == "mobile":
+            response = Response(
+                {
+                    "access": str(refresh_token.access_token),
+                    "refresh": str(refresh_token),
+                },
+                status=status.HTTP_200_OK,
+            )
+            return response
         response = Response()
         response.status_code = status.HTTP_200_OK
         response.set_cookie(
@@ -96,7 +104,10 @@ class RefreshAccessToken(APIView):
 
     def get(self, request, *args, **kwargs) -> Response:
         try:
-            refresh_token_str: str = request.COOKIES["refresh"]
+            if request.headers.get("X-Client-Type") == "mobile":
+                refresh_token_str = request.headers["Token"]
+            else:
+                refresh_token_str: str = request.COOKIES.get("refresh")
             refresh_token = RefreshToken(refresh_token_str)
             return Response(
                 {"access": str(refresh_token.access_token)}, status=status.HTTP_200_OK
@@ -108,9 +119,14 @@ class RefreshAccessToken(APIView):
 class LogoutView(APIView):
     def delete(self, request) -> Response:
         try:
-            refresh_token: str = request.COOKIES["refresh"]
+            if request.headers["X-Client-Type"] == "mobile":
+                refresh_token: str = request.headers["Token"]
+            else:
+                refresh_token: str = request.COOKIES["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
+            if request.headers["X-Client-Type"] == "mobile":
+                return Response({}, status=status.HTTP_200_OK)
             response = Response({}, status=status.HTTP_204_NO_CONTENT)
             response.delete_cookie("refresh", path="/")
             return response
