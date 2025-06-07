@@ -1,21 +1,21 @@
-from asgiref.sync import async_to_sync, sync_to_async
+from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from device.models import Device
 from user.frontend_message_type import FrontendMessageType
 
 
-@async_to_sync
-async def update_frontend_device(device: Device):
+def update_frontend_device(device: Device, status=200):
     from device.serializers.device import DeviceSerializer
 
     data = DeviceSerializer(device).data
-    await get_channel_layer().group_send(
+
+    async_to_sync(get_channel_layer().group_send)(
         f"home_{device.home.id}",
         {
             "type": "send_to_frontend",
             "action": FrontendMessageType.UPDATE_DEVICE.value,
-            "data": {"status": 200, "data": data},
+            "data": {"status": status, "data": data},
         },
     )
 

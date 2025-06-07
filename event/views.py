@@ -32,7 +32,7 @@ class CreateDeleteEvent(APIView):
         device_id = event.device.id
         event.delete()
         device = get_object_or_404(Device, pk=device_id)
-        update_frontend_device(device.home.id)
+        update_frontend_device(device)
         return Response({}, 200)
 
 

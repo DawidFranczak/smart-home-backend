@@ -154,6 +154,23 @@ class RouterConsumer(AsyncWebsocketConsumer):
     async def update_frontend_by_device(self, device: Device):
         device_data = await self.get_device_serialized_data_to_frontend(device)
         await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
+    ############# EVENTS ###########################
+    async def on_read_request(self, data: DeviceMessage):
+        device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
+        result = await check_uid(device, data.payload["uid"])
+        event = MessageEvent.ON_READ_SUCCESS if result else MessageEvent.ON_READ_FAILURE
+        actions_request = await self.get_event_request(device, event)
+        await self.send_actions_request(actions_request)
+
+    async def on_click_request(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        actions_request = await self.get_event_request(device, MessageEvent.ON_CLICK)
+        await self.send_actions_request(actions_request)
+
+    async def on_hold_request(self, data: DeviceMessage):
+        device = await self.get_device_by_mac(data.device_id)
+        actions_request = await self.get_event_request(device, MessageEvent.ON_HOLD)
+        await self.send_actions_request(actions_request)
 
     ########################### request ########################################
 
@@ -172,8 +189,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
             update_fields=["last_seen", "is_online", "pending"]
         )
         await self.router_send(message.to_json())
-        device_data = await self.get_device_serialized_data_to_frontend(device)
-        await self.send_to_frontend(200, FrontendMessageType.UPDATE_DEVICE, device_data)
+        await self.update_frontend_by_device(device)
 
     async def device_disconnect_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
@@ -186,6 +202,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
             update_fields=["last_seen", "is_online", "pending"]
         )
         await self.update_frontend_by_device(device)
+
     async def health_check_request(self, data: DeviceMessage):
         device = await self.get_device_by_mac(data.device_id)
         device.last_seen = datetime.now()
@@ -195,23 +212,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
             update_fields=["last_seen", "wifi_strength", "is_online"]
         )
 
-    ############# EVENTS ###########################
-    async def on_read_request(self, data: DeviceMessage):
-        device = await sync_to_async(Rfid.objects.get)(mac=data.device_id)
-        result = await check_uid(device, data.payload["uid"])
-        event = MessageEvent.ON_READ_SUCCESS if result else MessageEvent.ON_READ_FAILURE
-        actions_request = await self.get_event_request(device, event)
-        await self.send_actions_request(actions_request)
-
-    async def on_click_request(self, data: DeviceMessage):
-        device = await self.get_device_by_mac(data.device_id)
-        actions_request = await self.get_event_request(device, MessageEvent.ON_CLICK)
-        await self.send_actions_request(actions_request)
-
-    async def on_hold_request(self, data: DeviceMessage):
-        device = await self.get_device_by_mac(data.device_id)
-        actions_request = await self.get_event_request(device, MessageEvent.ON_HOLD)
-        await self.send_actions_request(actions_request)
 
     ########################### response ########################################
 

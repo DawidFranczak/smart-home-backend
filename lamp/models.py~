@@ -1,13 +1,14 @@
 import datetime
 from django.db import models
 from device.models import Device
-from enum import Enum
+from enums import Enum
 
 
 class LampAction(Enum):
     ON = "on"
     OFF = "off"
     BLINK = "blink"
+    TOGGLE = "toggle"
 
 
 class Lamp(Device):
