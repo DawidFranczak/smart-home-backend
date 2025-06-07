@@ -1,5 +1,5 @@
 from device.models import Device
-from enum import Enum
+from enums import Enum
 
 
 class ButtonEvent(Enum):
@@ -7,7 +7,6 @@ class ButtonEvent(Enum):
     ON_HOLD = "on_hold"
 
 
-# Create your models here.
 class Button(Device):
 
     @staticmethod

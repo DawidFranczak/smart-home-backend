@@ -1,4 +1,3 @@
-from asgiref.sync import async_to_sync
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -12,6 +11,9 @@ from utils.web_socket_message import update_frontend_device
 from .command import add_card
 from .serializer import CardSerializer
 from .models import Card, Rfid
+from utils.shared_task import check_add_card_request
+from settings import Settings
+from enums.settings import TimeSettingKey
 
 
 class RfidListCreate(ListCreateAPIView):
@@ -61,4 +63,8 @@ class CardListCreate(ListCreateAPIView):
         rfid.save()
         serializer_data = DeviceSerializer(rfid).data
         add_card(rfid, validated_data["name"])
+        settings = Settings()
+        check_add_card_request.apply_async(
+            (rfid.id,), countdown=settings.get(TimeSettingKey.ADD_TAG_WAIT, 20)
+        )
         return Response(serializer_data, 200)

@@ -2,7 +2,6 @@ from enum import Enum
 from django.utils import timezone
 from django.db import models
 from device.models import Device
-from lamp.models import Lamp
 
 
 class RfidEvent(Enum):

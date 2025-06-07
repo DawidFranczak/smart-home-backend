@@ -14,7 +14,8 @@ class RfidEvent(Enum):
 
 
 class RfidAction(Enum):
-    ACTIVE_OUTPUT = "active_output"
+    ACCESS_GRANTED = "access_granted"
+    ACCESS_DENIED = "access_denied"
 
 
 class Rfid(Device):
