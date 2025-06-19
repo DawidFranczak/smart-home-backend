@@ -66,7 +66,6 @@ class RegisterView(APIView):
         username: str = request.data.get("username", None)
         password: str = request.data.get("password", None)
         password2: str = request.data.get("password2", None)
-        home_uuid: str = request.data.get("homeUuid", None)
 
         if not username or not password or not password2:
             return Response({"empty": "Proszę uzupełnić pola."}, 400)
@@ -78,13 +77,6 @@ class RegisterView(APIView):
         if password != password2:
             errors["password2"] = "Hasła nie pasują do siebie."
 
-        if home_uuid:
-            try:
-                parsed_uuid = UUID(home_uuid, version=4)
-                home = Home.objects.get(add_uid=parsed_uuid)
-            except:
-                errors["homeUuid"] = "Błędny kod domu."
-        else:
             home = Home.objects.create()
 
         if len(errors) > 0:
@@ -119,7 +111,7 @@ class RefreshAccessToken(APIView):
 class LogoutView(APIView):
     def delete(self, request) -> Response:
         try:
-            if request.headers["X-Client-Type"] == "mobile":
+            if request.headers.get("X-Client-Type", None) == "mobile":
                 refresh_token: str = request.headers["Token"]
             else:
                 refresh_token: str = request.COOKIES["refresh"]
