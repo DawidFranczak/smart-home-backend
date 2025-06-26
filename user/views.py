@@ -1,12 +1,12 @@
 from datetime import timedelta
-from uuid import UUID, uuid4
+from uuid import uuid4
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AbstractUser, User
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.serializers import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404, render
@@ -89,6 +89,28 @@ class RegisterView(APIView):
         home.save()
         Favourite.objects.create(user=user)
         return Response({}, 201)
+
+
+class ChangePasswordView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+        new_password2 = request.data.get("new_password2")
+        print(current_password, new_password, new_password2)
+        if not current_password or not new_password or not new_password2:
+            return Response({"empty": "Proszę uzupełnić pola."}, 400)
+
+        if not user.check_password(current_password):
+            return Response({"current_password": "Błędne hasło."}, 400)
+
+        if new_password != new_password2:
+            return Response({"new_password2": "Hasła nie pasują do siebie."}, 400)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({}, 200)
 
 
 class RefreshAccessToken(APIView):

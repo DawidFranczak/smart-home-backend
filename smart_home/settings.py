@@ -33,12 +33,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://dashing-cod-pretty.ngrok-free.app",
-    "https://1cdd-91-227-219-94.ngrok-free.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://dashing-cod-pretty.ngrok-free.app",
-    "https://1cdd-91-227-219-94.ngrok-free.app",
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "ngrok-skip-browser-warning",
@@ -177,11 +175,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATIC_URL = "/static/"
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",
+# ]
+# STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
