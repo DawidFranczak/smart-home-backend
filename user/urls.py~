@@ -5,8 +5,7 @@ from .views import (
     LoginView,
     RefreshAccessToken,
     RegisterView,
-    FavouriteView,
-    ChangePasswordView,
+    FavouriteView, ChangePasswordView,
 )
 
 urlpatterns: list[URLPattern] = [
