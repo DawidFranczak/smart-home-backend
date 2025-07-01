@@ -41,9 +41,7 @@ class ListCreateDevice(ListCreateAPIView):
             model, _ = get_model_serializer_by_fun(fun.lower())
             if not model:
                 return Device.objects.none()
-            return get_list_or_404(
-                model, home__users=self.request.user, room__isnull=False
-            )
+            return get_list_or_404(model, home__users=self.request.user, room__isnull=False)
         return Device.objects.filter(room__user=self.request.user)
 
     def create(self, request, *args, **kwargs):

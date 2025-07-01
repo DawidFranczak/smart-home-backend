@@ -106,7 +106,7 @@ class ChangePasswordView(APIView):
             return Response({"current_password": "Błędne hasło."}, 400)
 
         if new_password != new_password2:
-            return Response({"password2": "Hasła nie pasują do siebie."}, 400)
+            return Response({"new_password2": "Hasła nie pasują do siebie."}, 400)
 
         user.set_password(new_password)
         user.save()

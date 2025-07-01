@@ -36,7 +36,8 @@ class DeviceSerializer(ModelSerializer):
             model_class.objects.get(pk=instance.id), context=self.context
         )
         data = serializer.data
-        data["events"] = EventSerializer(instance.events.all(), many=True).data
+        print(instance.events.all())
+        # data["events"] = EventSerializer(instance.events.all(), many=True).data
         representation.update(data)
         return representation
 

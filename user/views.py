@@ -98,7 +98,6 @@ class ChangePasswordView(APIView):
         current_password = request.data.get("current_password")
         new_password = request.data.get("new_password")
         new_password2 = request.data.get("new_password2")
-        print(current_password, new_password, new_password2)
         if not current_password or not new_password or not new_password2:
             return Response({"empty": "Proszę uzupełnić pola."}, 400)
 
