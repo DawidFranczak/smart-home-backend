@@ -8,7 +8,11 @@ from .models import Room
 class RoomSerializer(serializers.ModelSerializer):
     device_count = serializers.SerializerMethodField()
     active_device_count = serializers.SerializerMethodField()
-    device = serializers.SerializerMethodField()
+    device = serializers.PrimaryKeyRelatedField(
+        source="devices",
+        many=True,
+        read_only=True,
+    )
     is_favourite = serializers.SerializerMethodField()
 
     def get_is_favourite(self, object: Room) -> bool:
@@ -21,13 +25,6 @@ class RoomSerializer(serializers.ModelSerializer):
     def get_active_device_count(self, object: Room) -> int:
         time_threshold = timezone.now() - timezone.timedelta(minutes=10)
         return object.devices.filter(last_seen__gt=time_threshold).count()
-
-    def get_device(self, object: Room) -> int:
-        view = self.context.get("view")
-        if view and view.__class__.__name__ == "ListCreateRoomView":
-            return None
-        devices = object.devices.all()
-        return DeviceSerializer(devices, many=True, context=self.context).data
 
     class Meta:
         model = Room
