@@ -61,6 +61,7 @@ class RoomSerializer(serializers.ModelSerializer):
     def validate_visibility(self, value) -> Room.Visibility:
         if value not in [Room.Visibility.PUBLIC, Room.Visibility.PRIVATE]:
             raise serializers.ValidationError("Invalid visibility value")
+        print(value)
         return value
 
     def validate_name(self, value):

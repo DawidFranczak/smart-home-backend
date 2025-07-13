@@ -65,4 +65,6 @@ class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
         return Device.objects.filter(home__users=self.request.user)
 
     def update(self, request, *args, **kwargs):
+        obj = get_object_or_404(Device, pk=kwargs.get("pk", 0))
+        request.user.favourite.device.remove(obj)
         return super().update(request, *args, **kwargs)

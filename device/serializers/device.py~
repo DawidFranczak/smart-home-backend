@@ -25,6 +25,7 @@ class DeviceSerializer(ModelSerializer):
     #     return obj.last_seen > timezone.now() - timezone.timedelta(minutes=10)
 
     def get_is_favourite(self, obj: Device):
+        print("obj", obj)
         if not obj.room:
             return False
         return obj.room.user.favourite.device.filter(pk=obj.pk).exists()
@@ -36,8 +37,7 @@ class DeviceSerializer(ModelSerializer):
             model_class.objects.get(pk=instance.id), context=self.context
         )
         data = serializer.data
-        print(instance.events.all())
-        # data["events"] = EventSerializer(instance.events.all(), many=True).data
+        data["events"] = EventSerializer(instance.events.all(), many=True).data
         representation.update(data)
         return representation
 

@@ -7,6 +7,7 @@ from .views import (
     RegisterView,
     FavouriteView,
     ChangePasswordView,
+    HomeView,
 )
 
 urlpatterns: list[URLPattern] = [
@@ -16,4 +17,5 @@ urlpatterns: list[URLPattern] = [
     path("logout/", LogoutView.as_view()),
     path("favourite/", FavouriteView.as_view()),
     path("change-password/", ChangePasswordView.as_view()),
+    path("home/", HomeView.as_view()),
 ]

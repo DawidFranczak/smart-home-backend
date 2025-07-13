@@ -31,7 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5177",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
@@ -175,7 +175,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# STATIC_URL = "/static/"
+STATIC_URL = "/static/"
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 # ]
