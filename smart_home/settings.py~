@@ -26,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-_d76k^%n@lke_zez8*l%u$e^xzw-a9qa+#021(%#im+#4z7lc!"
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "http://localhost:5177",
     "https://dashing-cod-pretty.ngrok-free.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
@@ -175,7 +175,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# STATIC_URL = "/static/"
+STATIC_URL = "/static/"
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 # ]

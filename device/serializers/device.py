@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer
 from django.utils import timezone
 from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from event.serializer import EventSerializer
+from utils.web_socket_message import update_frontend_device
 
 from ..models import (
     Device,
@@ -36,7 +37,6 @@ class DeviceSerializer(ModelSerializer):
             model_class.objects.get(pk=instance.id), context=self.context
         )
         data = serializer.data
-
         data["events"] = EventSerializer(instance.events.all(), many=True).data
         representation.update(data)
         return representation
@@ -51,6 +51,7 @@ class DeviceSerializer(ModelSerializer):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        update_frontend_device(instance, 200)
         return instance
 
     def create(self, validated_data):

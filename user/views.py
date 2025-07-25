@@ -1,5 +1,5 @@
 from datetime import timedelta
-from uuid import uuid4
+from uuid import uuid4, UUID
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AbstractUser, User
 from django.http import HttpResponse
@@ -77,7 +77,7 @@ class RegisterView(APIView):
         if password != password2:
             errors["password2"] = "Hasła nie pasują do siebie."
 
-            home = Home.objects.create()
+        home = Home.objects.create()
 
         if len(errors) > 0:
             return Response(errors, 400)
@@ -98,7 +98,6 @@ class ChangePasswordView(APIView):
         current_password = request.data.get("current_password")
         new_password = request.data.get("new_password")
         new_password2 = request.data.get("new_password2")
-        print(current_password, new_password, new_password2)
         if not current_password or not new_password or not new_password2:
             return Response({"empty": "Proszę uzupełnić pola."}, 400)
 
@@ -150,6 +149,16 @@ class LogoutView(APIView):
 
 
 class FavouriteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        favourite, _ = Favourite.objects.prefetch_related(
+            "device", "room"
+        ).get_or_create(user=request.user)
+        rooms = [room.id for room in favourite.room.all()]
+        devices = [device.id for device in favourite.device.all()]
+        return Response({"rooms": rooms, "devices": devices}, status=status.HTTP_200_OK)
+
     def put(self, request, *args, **kwargs):
         user = request.user
         action = request.data["is_favourite"]
@@ -173,8 +182,51 @@ class FavouriteView(APIView):
             data = DeviceSerializer(obj).data
         return Response(data, status=status.HTTP_200_OK)
 
+
+class HomeView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
-        favourite, _ = Favourite.objects.get_or_create(user=request.user)
-        rooms = RoomSerializer(favourite.room.all(), many=True).data
-        devices = DeviceSerializer(favourite.device.all(), many=True).data
-        return Response({"rooms": rooms, "devices": devices}, status=status.HTTP_200_OK)
+        home = get_object_or_404(Home, users=request.user)
+        return Response(
+            {"code": home.add_uid},
+            status=status.HTTP_200_OK,
+        )
+
+    def put(self, request, *args, **kwargs):
+        code = request.data.get("code")
+        if not code:
+            return Response(
+                {"error": "Code is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            uuid = UUID(code)
+        except ValueError:
+            return Response(
+                {"error": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        new_home = get_object_or_404(Home, add_uid=uuid)
+        old_home = request.user.home.all().first()
+        old_home.users.remove(request.user)
+
+        new_home.users.add(request.user)
+        new_home.add_uid = uuid4()
+        new_home.save()
+
+        if old_home.users.count() == 0:
+            old_home.delete()
+        else:
+            old_home.save()
+        return Response({}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        home = get_object_or_404(Home, users=request.user)
+        home.users.remove(request.user)
+        if home.users.count() == 0:
+            home.delete()
+        else:
+            home.save()
+        new_home = Home.objects.create()
+        new_home.users.add(request.user)
+        new_home.save()
+        return Response({}, status=status.HTTP_204_NO_CONTENT)

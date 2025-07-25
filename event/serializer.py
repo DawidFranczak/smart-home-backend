@@ -13,4 +13,6 @@ class EventSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_device(self, obj: Event):
-        return f"{obj.target_device.room.name}-{obj.target_device.name}"
+        if obj.target_device.room:
+            return f"{obj.target_device.room.name}-{obj.target_device.name}"
+        return {obj.target_device.name}
