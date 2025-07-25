@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from communication_protocol.device_message import set_settings_request
 from utils.check_hour_in_range import check_hour_in_range
-from utils.web_socket_message import send_to_device
+from utils.web_socket_message import send_to_device, update_frontend_device
 from .models import Aquarium
 
 
@@ -54,6 +54,7 @@ class AquariumSerializer(serializers.ModelSerializer):
         new_data = AquariumSerializerDevice(instance).data
         request = set_settings_request(instance, new_data)
         send_to_device(instance.get_router_mac(), request.to_json())
+        update_frontend_device(instance, 200)
         return instance
 
 

@@ -77,7 +77,7 @@ class RegisterView(APIView):
         if password != password2:
             errors["password2"] = "Hasła nie pasują do siebie."
 
-            home = Home.objects.create()
+        home = Home.objects.create()
 
         if len(errors) > 0:
             return Response(errors, 400)
@@ -151,6 +151,14 @@ class LogoutView(APIView):
 class FavouriteView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request, *args, **kwargs):
+        favourite, _ = Favourite.objects.prefetch_related(
+            "device", "room"
+        ).get_or_create(user=request.user)
+        rooms = [room.id for room in favourite.room.all()]
+        devices = [device.id for device in favourite.device.all()]
+        return Response({"rooms": rooms, "devices": devices}, status=status.HTTP_200_OK)
+
     def put(self, request, *args, **kwargs):
         user = request.user
         action = request.data["is_favourite"]
@@ -173,12 +181,6 @@ class FavouriteView(APIView):
             )
             data = DeviceSerializer(obj).data
         return Response(data, status=status.HTTP_200_OK)
-
-    def get(self, request, *args, **kwargs):
-        favourite, _ = Favourite.objects.get_or_create(user=request.user)
-        rooms = RoomSerializer(favourite.room.all(), many=True).data
-        devices = DeviceSerializer(favourite.device.all(), many=True).data
-        return Response({"rooms": rooms, "devices": devices}, status=status.HTTP_200_OK)
 
 
 class HomeView(APIView):
