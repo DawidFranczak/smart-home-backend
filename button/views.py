@@ -5,7 +5,6 @@ from device.serializers.device import DeviceSerializer
 from .models import Button
 
 
-# Create your views here.
 class ButtonListAPIView(ListAPIView):
     serializer_class = DeviceSerializer
 

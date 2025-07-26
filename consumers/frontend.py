@@ -1,9 +1,9 @@
 import json
-from tokenize import TokenError
-
 from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth.models import User
 
 
@@ -33,17 +33,19 @@ class UserConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, code):
         print("disconnect", code)
 
-    @sync_to_async
+    @database_sync_to_async
     def validate_user(self, token):
         try:
             access_token = AccessToken(token)
-            user_id = access_token.payload.get("user_id", 0)
-            user = User.objects.filter(id=user_id)
-            if user.exists():
-                return user.first()
+        except TokenError:
             return None
-        except Exception as e:
-            print(e)
+
+        user_id = access_token.payload.get("user_id", 0)
+
+        try:
+            user = User.objects.get(id=user_id)
+            return user
+        except User.DoesNotExist:
             return None
 
     @sync_to_async

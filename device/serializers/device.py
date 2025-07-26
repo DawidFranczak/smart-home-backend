@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from django.utils import timezone
-from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
+
+from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
 from utils.web_socket_message import update_frontend_device
 
@@ -12,7 +12,6 @@ from ..models import (
 
 class DeviceSerializer(ModelSerializer):
     is_favourite = serializers.SerializerMethodField()
-    # is_online = serializers.SerializerMethodField()
 
     class Meta:
         model = Device
@@ -21,9 +20,6 @@ class DeviceSerializer(ModelSerializer):
             "mac",
         ]
         read_only_fields = ["ip", "last_seen"]
-
-    # def get_is_online(self, obj: Device):
-    #     return obj.last_seen > timezone.now() - timezone.timedelta(minutes=10)
 
     def get_is_favourite(self, obj: Device):
         if not obj.room:
@@ -64,7 +60,9 @@ class DeviceSerializer(ModelSerializer):
         fun: str = obj.fun.lower()
         if not fun:
             raise serializers.ValidationError("Pole 'fun' jest wymagane.")
-        model_class, serializer_class = get_model_serializer_by_fun(fun)
+        register = DeviceRegistry()
+        model_class = register.get_model(fun)
+        serializer_class = register.get_serializer(fun)
         if not serializer_class:
             raise serializers.ValidationError(f"Nieobsługiwany typ urządzenia: {fun}")
         return model_class, serializer_class

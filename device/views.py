@@ -3,14 +3,13 @@ from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import (
     ListCreateAPIView,
-    ListAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 
 from device.models import Device, Router
+from device_registry import DeviceRegistry
 from room.models import Room
-from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from .serializers.device import DeviceSerializer
 from .serializers.router import RouterSerializer
 
@@ -38,7 +37,8 @@ class ListCreateDevice(ListCreateAPIView):
             )
         elif "function" in self.request.query_params:
             fun = self.request.query_params.get("function")
-            model, _ = get_model_serializer_by_fun(fun.lower())
+            register = DeviceRegistry()
+            model = register.get_model(fun.lower())
             if not model:
                 return Device.objects.none()
             return get_list_or_404(
