@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, render
 
 from room.models import Room
 from device.models import Device
-from smart_home.settings import REFRESH_TOKEN_LIFETIME
+from django.conf import settings
 from device.serializers.device import DeviceSerializer
 from room.serializer import RoomSerializer
 from .models import Favourite, Home
@@ -51,7 +51,7 @@ class LoginView(APIView):
             key="refresh",
             value=refresh_token,
             samesite="none",
-            max_age=timedelta(seconds=REFRESH_TOKEN_LIFETIME),
+            max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
             httponly=True,
             secure=True,
         )
