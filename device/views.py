@@ -1,5 +1,5 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
-
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -44,7 +44,7 @@ class ListCreateDevice(ListCreateAPIView):
             return get_list_or_404(
                 model, home__users=self.request.user, room__isnull=False
             )
-        return Device.objects.filter(room__user=self.request.user)
+        return Device.objects.filter(Q(home__users=self.request.user),Q(room__user=self.request.user)|Q(room__visibility="PU"))
 
     def create(self, request, *args, **kwargs):
         data = request.data
