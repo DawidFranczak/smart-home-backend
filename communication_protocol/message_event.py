@@ -18,3 +18,7 @@ class MessageEvent(Enum):
     TOGGLE = "toggle"
     ACCESS_GRANTED = "access_granted"
     ACCESS_DENIED = "access_denied"
+    CAMERA_OFFER = "camera_offer"
+    CAMERA_ANSWER = "camera_answer"
+    CAMERA_DISCONNECT = "camera_disconnect"
+    CAMERA_ERROR = "camera_error"

@@ -8,6 +8,7 @@ class Camera(models.Model):
     port = models.PositiveIntegerField(default=554)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
+    path = models.CharField(max_length=100, null=True,blank=True)
 
     def __str__(self):
         return self.name

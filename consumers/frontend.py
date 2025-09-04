@@ -2,19 +2,19 @@ import json
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.exceptions import TokenError
-from django.contrib.auth.models import User
+from consumers.frontend_message_type import FrontendMessageType
+from consumers.utils import validate_user
 
 
 class UserConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.user_instance = None
+        self.token = None
 
     async def connect(self):
         token = self.scope["url_route"]["kwargs"]["token"]
-        user = await self.validate_user(token)
+        user = await validate_user(token)
         if not user:
             await self.close()
             return
@@ -24,7 +24,6 @@ class UserConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):
-        # print("receive", text_data)
         pass
 
     async def send_to_frontend(self, event):
@@ -33,21 +32,12 @@ class UserConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, code):
         print("disconnect", code)
 
-    @database_sync_to_async
-    def validate_user(self, token):
-        try:
-            access_token = AccessToken(token)
-        except TokenError:
-            return None
-
-        user_id = access_token.payload.get("user_id", 0)
-
-        try:
-            user = User.objects.get(id=user_id)
-            return user
-        except User.DoesNotExist:
-            return None
-
     @sync_to_async
     def get_home_id(self, user):
         return user.home.first().id
+
+    @database_sync_to_async
+    def get_router_mac(self):
+        return self.user_instance.home.first().router.mac
+
+
