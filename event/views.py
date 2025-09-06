@@ -1,12 +1,12 @@
+from django.contrib.admin.templatetags.admin_modify import register
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from device.models import Device, Event
-from device.serializers.device import DeviceSerializer
+from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
 from event.utils import get_models_with_supported_actions
-from utils.get_model_serializer_by_fun import get_model_serializer_by_fun
 from utils.web_socket_message import update_frontend_device
 
 
@@ -42,7 +42,8 @@ class GetActionsAndEvents(APIView):
         id = request.query_params.get("id")
         fun = request.query_params.get("fun")
         models = get_models_with_supported_actions(request.user)
-        model, _ = get_model_serializer_by_fun(fun)
+        register = DeviceRegistry()
+        model = register.get_model(fun)
         device = get_object_or_404(model, home__users=request.user, pk=id)
         events = EventSerializer(device.events.all(), many=True).data
         return Response(
@@ -54,15 +55,13 @@ class GetActionsAndEvents(APIView):
             200,
         )
 
-    def post(self, request):
-        data = request.data
-
 
 class GetDeviceByFunction(APIView):
 
     def get(self, request):
         fun = request.query_params.get("function")
-        model, _ = get_model_serializer_by_fun(fun.lower())
+        register = DeviceRegistry()
+        model = register.get_model(fun.lower())
         if not model:
             return Response([], 404)
         return Response(model.available_actions(), 200)

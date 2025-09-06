@@ -1,7 +1,0 @@
-from asgiref.sync import sync_to_async
-from rfid.models import Rfid, Card
-
-
-@sync_to_async
-def check_uid(device: Rfid, uid: int) -> bool:
-    return Card.objects.filter(rfid=device, uid=uid).exists()

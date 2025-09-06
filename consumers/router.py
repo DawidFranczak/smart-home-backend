@@ -1,0 +1,119 @@
+from datetime import datetime
+
+from django.db.models import QuerySet
+from django.utils import timezone
+from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+from communication_protocol.communication_protocol import DeviceMessage
+from consumers.event_manager import EventManager
+from device.models import Router, Device
+from device.serializers.router import RouterSerializer
+from consumers.frontend_message_type import FrontendMessageType
+from utils.web_socket_message import update_frontend_device
+
+
+class RouterConsumer(AsyncWebsocketConsumer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.queue = None
+        self.mac = None
+        self.router: Router = None
+        self.event_manager = EventManager(self)
+
+    async def connect(self):
+        self.mac = self.scope["url_route"]["kwargs"]["mac_address"]
+        self.router: Router = await self.get_router(self.mac)
+        if not self.router:
+            await self.close(code=4000)
+            return
+
+        self.router.last_seen = datetime.now()
+        self.router.is_online = True
+        await sync_to_async(self.router.save)(update_fields=["last_seen", "is_online"])
+        self.queue = {}
+        await self.channel_layer.group_add(f"router_{self.mac}", self.channel_name)
+        await self.accept()
+        await self.send_to_frontend(
+            200,
+            FrontendMessageType.UPDATE_ROUTER,
+            await self.get_router_serialized_data(),
+        )
+
+    async def disconnect(self, code):
+        if not self.router:
+            return
+        self.router.last_seen = datetime.now()
+        self.router.is_online = False
+        await sync_to_async(self.router.save)(update_fields=["last_seen", "is_online"])
+        await self.send_to_frontend(
+            200,
+            FrontendMessageType.UPDATE_ROUTER,
+            await self.get_router_serialized_data(),
+        )
+        router_devices = await self.get_router_devices()
+        await self.deactivate_all_device(router_devices)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        try:
+            data = DeviceMessage.from_json(text_data)
+        except Exception as e:
+            print("Error in message", e)
+            return
+        await self.event_manager.handle_event(data)
+
+    async def router_send(self, event):
+        if not isinstance(event, str):
+            event = event["data"]
+        await self.send(text_data=event)
+
+    @database_sync_to_async
+    def get_router(self, mac: str) -> Router | None:
+        """
+        Retrieves a Router object by its MAC address.
+        Args:
+            mac (str): The MAC address of the router.
+        Returns:
+            Router | None: The Router object if found, otherwise None.
+        """
+        try:
+            return Router.objects.select_related("home").get(mac=mac)
+        except Router.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def get_router_devices(self):
+        """
+        Retrieves all devices associated with the router.
+        Returns:
+            QuerySet: A queryset of Device objects related to the router.
+        """
+        return self.router.home.devices.all()
+
+    @database_sync_to_async
+    def deactivate_all_device(self, devices: QuerySet[Device, Device]):
+        online = devices.filter(is_online=True)
+        for device in online:
+            device.is_online = False
+            device.last_seen = timezone.now()
+            device.save(update_fields=["is_online", "last_seen"])
+            update_frontend_device(device)
+
+    ########################### utils ########################################
+
+    @sync_to_async
+    def get_router_serialized_data(self):
+        return RouterSerializer(self.router).data
+
+    async def send_to_frontend(
+        self, status: int, action: FrontendMessageType, data: dict
+    ):
+        await self.channel_layer.group_send(
+            f"home_{self.router.home.id}",
+            {
+                "type": "send_to_frontend",
+                "action": action.value,
+                "data": {"status": status, "data": data},
+            },
+        )
