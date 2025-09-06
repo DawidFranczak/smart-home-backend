@@ -53,18 +53,6 @@ class CameraConsumer(AsyncWebsocketConsumer):
         await send_to_router(message, self.router_mac)
 
     async def disconnect(self, code):
-        print(f"Camera disconnected: {self.camera} with token {self.token}")
-        if self.router_mac:
-            message = DeviceMessage(
-                message_type=MessageType.REQUEST,
-                message_event=MessageEvent.DEVICE_DISCONNECT,
-                device_id="camera",
-                payload={
-                    "token": self.token,
-                },
-                message_id=uuid4().hex,
-            )
-            await send_to_router(message, self.router_mac)
         if self.token:
             await self.channel_layer.group_discard(get_camera_channel_name(self.token), self.channel_name)
 
