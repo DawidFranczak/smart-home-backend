@@ -57,7 +57,6 @@ class CameraConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(get_camera_channel_name(self.token), self.channel_name)
 
     async def camera_send(self, event):
-        print(event)
         if event['message_event'] == MessageEvent.CAMERA_ERROR.value:
             data = {
                 "type": MessageEvent.CAMERA_ERROR.value,

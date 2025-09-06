@@ -14,6 +14,6 @@ urlpatterns = [
     path("api/button/", include("button.urls")),
     path("api/rfid/", include("rfid.urls")),
     path("api/event/", include("event.urls")),
-    path("api/camera/", include("camera.urls")),
+    path("api/cameras/", include("camera.urls")),
     re_path(r"^.*$", index),
 ]

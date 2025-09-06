@@ -14,5 +14,5 @@ class ListCreateCameraView(ListCreateAPIView):
         return get_list_or_404(Camera, home__users=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        request.data["home"] = request.user.home.id
+        request.data["home"] = request.user.home.first().id
         return super().create(request, *args, **kwargs)
