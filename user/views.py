@@ -1,4 +1,3 @@
-from datetime import timedelta
 from uuid import uuid4, UUID
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AbstractUser, User
@@ -17,10 +16,6 @@ from django.conf import settings
 from device.serializers.device import DeviceSerializer
 from room.serializer import RoomSerializer
 from .models import Favourite, Home
-
-
-def index(request) -> HttpResponse:
-    return render(request, "index.html")
 
 
 class LoginView(APIView):

@@ -1,11 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include, re_path
-from user.views import index
-from user.views import index
+from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", index, name="index"),
     path("api/", include("user.urls")),
     path("api/room/", include("room.urls")),
     path("api/lamp/", include("lamp.urls")),
@@ -15,5 +12,4 @@ urlpatterns = [
     path("api/rfid/", include("rfid.urls")),
     path("api/event/", include("event.urls")),
     path("api/cameras/", include("camera.urls")),
-    re_path(r"^.*$", index),
 ]
