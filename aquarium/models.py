@@ -1,6 +1,5 @@
 import datetime
 from django.db import models
-from django.utils import timezone
 from device.models import Device
 
 

@@ -21,6 +21,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
         self.mac = None
         self.router: Router = None
         self.event_manager = EventManager(self)
+        self.home = None
 
     async def connect(self):
         self.mac = self.scope["url_route"]["kwargs"]["mac_address"]
@@ -35,6 +36,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
         self.queue = {}
         await self.channel_layer.group_add(f"router_{self.mac}", self.channel_name)
         await self.accept()
+        await self.set_home()
         await self.send_to_frontend(
             200,
             FrontendMessageType.UPDATE_ROUTER,
@@ -117,3 +119,6 @@ class RouterConsumer(AsyncWebsocketConsumer):
                 "data": {"status": status, "data": data},
             },
         )
+    @database_sync_to_async
+    def set_home(self):
+        self.home = self.router.home
