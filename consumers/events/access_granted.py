@@ -1,8 +1,8 @@
-from communication_protocol.communication_protocol import DeviceMessage
+from consumers.communication_protocol.message import Message
 from consumers.events.base_event import BaseEventResponse
 
 
 class AccessGrantedEvent(BaseEventResponse):
 
-    def handle_response(self, consumer, message: DeviceMessage):
+    def handle_response(self, consumer, message: Message):
         pass

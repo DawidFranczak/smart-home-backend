@@ -1,5 +1,5 @@
-from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.message import Message
+from consumers.communication_protocol.message_event import MessageEvent
 from consumers.events.base_event import BaseEventResponse
 from rfid.models import Rfid, Card
 from utils.web_socket_message import update_frontend_device
@@ -7,7 +7,7 @@ from utils.web_socket_message import update_frontend_device
 
 class AddTagEvent(BaseEventResponse):
 
-    def handle_response(self, consumer, message: DeviceMessage):
+    def handle_response(self, consumer, message: Message):
         uid = message.payload.get("uid", None)
         name = message.payload.get("name", None)
         if not uid:

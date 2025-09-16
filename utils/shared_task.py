@@ -1,7 +1,6 @@
-from asgiref.sync import async_to_sync
 from celery import shared_task
 
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.message_event import MessageEvent
 from rfid.models import Rfid
 from utils.web_socket_message import update_frontend_device
 

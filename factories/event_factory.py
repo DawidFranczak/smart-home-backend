@@ -1,4 +1,4 @@
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.message_event import MessageEvent
 from consumers.events.access_denied import AccessDeniedEvent
 from consumers.events.access_granted import AccessGrantedEvent
 from consumers.events.add_tag import AddTagEvent

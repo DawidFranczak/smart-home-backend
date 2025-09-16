@@ -15,11 +15,8 @@ class DeviceSerializer(ModelSerializer):
 
     class Meta:
         model = Device
-        exclude = [
-            "port",
-            "mac",
-        ]
-        read_only_fields = ["ip", "last_seen"]
+        exclude = ["mac"]
+        read_only_fields = ["last_seen"]
 
     def get_is_favourite(self, obj: Device):
         if not obj.room:

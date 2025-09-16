@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from communication_protocol.device_message import set_settings_request
+from consumers.communication_protocol.device_message import set_settings_request
 from utils.check_hour_in_range import check_hour_in_range
 from utils.web_socket_message import send_to_device, update_frontend_device
 from .models import Aquarium
@@ -10,12 +10,7 @@ class AquariumSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Aquarium
-        exclude = [
-            "fun",
-            "id",
-            "port",
-            "mac",
-        ]
+        exclude = ["fun", "mac"]
 
     def validate(self, attrs):
         self.validate_led_time(attrs)

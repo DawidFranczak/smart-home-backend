@@ -1,5 +1,5 @@
-from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.message import Message
+from consumers.communication_protocol.message_event import MessageEvent
 from consumers.events.base_event import BaseEventRequest
 from rfid.models import Card
 
@@ -7,7 +7,7 @@ from rfid.models import Card
 class OnReadEvent(BaseEventRequest):
     """Handles the RFID card read event."""
 
-    def handle_request(self, consumer, message: DeviceMessage):
+    def handle_request(self, consumer, message: Message):
         """Check if the RFID card is registered and send the appropriate event."""
         uid: str | None = message.payload.get("uid", None)
         if not uid:

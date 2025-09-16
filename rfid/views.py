@@ -5,7 +5,7 @@ from rest_framework.generics import (
     DestroyAPIView,
 )
 from rest_framework.response import Response
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.message_event import MessageEvent
 from device.serializers.device import DeviceSerializer
 from utils.web_socket_message import update_frontend_device
 from .command import add_card

@@ -1,10 +1,8 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.template.context_processors import request
 from rest_framework import serializers
 
-from communication_protocol.device_message import set_settings_request, message_request
-from communication_protocol.message_event import MessageEvent
+from consumers.communication_protocol.device_message import set_settings_request
 from .models import Lamp
 
 

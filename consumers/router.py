@@ -1,11 +1,11 @@
 from datetime import datetime
-
+from pydantic import ValidationError
 from django.db.models import QuerySet
 from django.utils import timezone
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from communication_protocol.communication_protocol import DeviceMessage
+from consumers.communication_protocol.message import Message
 from consumers.event_manager import EventManager
 from device.models import Router, Device
 from device.serializers.router import RouterSerializer
@@ -25,6 +25,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.mac = self.scope["url_route"]["kwargs"]["mac_address"]
+        print(f"Router with MAC {self.mac} is trying to connect.")
         self.router: Router = await self.get_router(self.mac)
         if not self.router:
             await self.close(code=4000)
@@ -59,11 +60,14 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
-            data = DeviceMessage.from_json(text_data)
+            data = Message.model_validate_json(text_data)
+            await self.event_manager.handle_event(data)
+        except ValidationError as e:
+            print("Error in message", e)
+            return
         except Exception as e:
             print("Error in message", e)
             return
-        await self.event_manager.handle_event(data)
 
     async def router_send(self, event):
         if not isinstance(event, str):
@@ -119,6 +123,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
                 "data": {"status": status, "data": data},
             },
         )
+
     @database_sync_to_async
     def set_home(self):
         self.home = self.router.home

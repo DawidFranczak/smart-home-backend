@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from communication_protocol.communication_protocol import DeviceMessage
+from consumers.communication_protocol.message import Message
 from consumers.events.base_event import BaseEventRequest
 from utils.web_socket_message import update_frontend_device
 
@@ -10,7 +10,7 @@ class DeviceDisconnectEvent(BaseEventRequest):
     Event triggered when a device disconnects.
     """
 
-    def handle_request(self, consumer, message: DeviceMessage):
+    def handle_request(self, consumer, message: Message):
         device = self._get_device(message.device_id)
         if not device:
             return

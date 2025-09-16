@@ -2,7 +2,7 @@ from asgiref.sync import async_to_sync
 from celery import shared_task
 from channels.layers import get_channel_layer
 from aquarium.models import Aquarium
-from communication_protocol.device_message import set_settings_request
+from consumers.communication_protocol.device_message import set_settings_request
 from device.serializers.device import DeviceSerializer
 from utils.check_hour_in_range import check_hour_in_range
 

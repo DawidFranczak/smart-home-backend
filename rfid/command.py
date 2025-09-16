@@ -2,7 +2,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from .models import Rfid
-from communication_protocol.rfid_message import add_card_request
+from consumers.communication_protocol.rfid_message import add_card_request
 
 
 def add_card(instance: Rfid, name: str) -> None:
