@@ -1,3 +1,4 @@
+from consumers.events.get_settings import GetSettings
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.access_denied import AccessDeniedEvent
 from consumers.events.access_granted import AccessGrantedEvent
@@ -31,6 +32,7 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.DEVICE_DISCONNECT: DeviceDisconnectEvent(),
         MessageEvent.HEALTH_CHECK: HealthCheckEvent(),
         MessageEvent.SET_SETTINGS: SetSettings(),
+        MessageEvent.GET_SETTINGS: GetSettings(),
         MessageEvent.ON_CLICK: OnClickEvent(),
         MessageEvent.ON_HOLD: OnHoldEvent(),
         MessageEvent.ON_READ: OnReadEvent(),

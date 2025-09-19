@@ -1,10 +1,6 @@
 from datetime import datetime
 
-from consumers.frontend_message.messenger import FrontendMessenger
-from consumers.router_message.builders.basic import (
-    set_settings_response,
-    basic_response,
-)
+from consumers.router_message.builders.basic import basic_response
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.messenger import DeviceMessenger
 from consumers.router_message.payload.basic import DeviceConnectRequest
@@ -30,17 +26,8 @@ class DeviceConnectEvent(BaseEventRequest):
         device.is_online = True
         device.pending = []
         device.save(update_fields=["last_seen", "is_online", "pending"])
-        # register = DeviceRegistry()
-        # serializer = register.get_serializer_device(device.fun)
-        # model = register.get_model(device.fun)
-        # response = set_settings_response(
-        #     message,
-        #     serializer(model.objects.get(pk=device.pk)).data,
-        # )
         response = basic_response(message, "accepted")
         DeviceMessenger().send(consumer.mac, response)
-
-        # FrontendMessenger().update_device(device)
 
     def _create_new_device(
         self, mac: str, payload: DeviceConnectRequest, home: Home

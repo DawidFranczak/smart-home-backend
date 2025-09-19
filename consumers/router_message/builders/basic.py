@@ -13,10 +13,8 @@ def basic_response(
     return build_response(message, {"status": status_type})
 
 
-def set_settings_response(
-    message: DeviceMessage, serializer_data: dict
-) -> DeviceMessage:
-    return build_response(message, serializer_data)
+def data_response(message: DeviceMessage, data: dict) -> DeviceMessage:
+    return build_response(message, data)
 
 
 def set_settings_request(mac: str, payload: dict) -> DeviceMessage:
