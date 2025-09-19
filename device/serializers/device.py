@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from consumers.frontend_message.messenger import FrontendMessenger
 from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
-from utils.web_socket_message import update_frontend_device
 
 from ..models import (
     Device,
@@ -44,7 +44,7 @@ class DeviceSerializer(ModelSerializer):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        update_frontend_device(instance, 200)
+        FrontendMessenger().update_device(instance, 200)
         return instance
 
     def create(self, validated_data):

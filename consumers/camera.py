@@ -2,9 +2,9 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from uuid import uuid4
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.message_event import MessageEvent
-from consumers.communication_protocol.message_type import MessageType
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
+from consumers.router_message.message_type import MessageType
 from consumers.utils import validate_user, send_to_router, get_camera_channel_name
 
 
@@ -90,8 +90,8 @@ class CameraConsumer(AsyncWebsocketConsumer):
     def setup_router_mac(self):
         self.router_mac = self.user.home.first().router.mac
 
-    def message_camera_offer(self, data: dict) -> Message:
-        return Message(
+    def message_camera_offer(self, data: dict) -> DeviceMessage:
+        return DeviceMessage(
             message_type=MessageType.REQUEST,
             message_event=MessageEvent.CAMERA_OFFER,
             device_id="camera",

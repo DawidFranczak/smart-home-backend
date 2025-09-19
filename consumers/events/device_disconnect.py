@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from consumers.communication_protocol.message import Message
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.device_message import DeviceMessage
 from consumers.events.base_event import BaseEventRequest
-from utils.web_socket_message import update_frontend_device
 
 
 class DeviceDisconnectEvent(BaseEventRequest):
@@ -10,7 +10,7 @@ class DeviceDisconnectEvent(BaseEventRequest):
     Event triggered when a device disconnects.
     """
 
-    def handle_request(self, consumer, message: Message):
+    def handle_request(self, consumer, message: DeviceMessage):
         device = self._get_device(message.device_id)
         if not device:
             return
@@ -18,4 +18,4 @@ class DeviceDisconnectEvent(BaseEventRequest):
         device.is_online = False
         device.pending = []
         device.save(update_fields=["last_seen", "is_online", "pending"])
-        update_frontend_device(device)
+        FrontendMessenger().update_device(device)

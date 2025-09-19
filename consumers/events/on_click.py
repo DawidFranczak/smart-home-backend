@@ -1,11 +1,11 @@
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.message_event import MessageEvent
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
 from consumers.events.base_event import BaseEventRequest
 
 
 class OnClickEvent(BaseEventRequest):
 
-    def handle_request(self, consumer, message: Message):
+    def handle_request(self, consumer, message: DeviceMessage):
         """
         Handle the incoming request for a click event.
         """
@@ -13,7 +13,7 @@ class OnClickEvent(BaseEventRequest):
         actions_request = self.get_event_request(device, MessageEvent.ON_CLICK)
         self.send_actions_request(actions_request, consumer)
 
-    def handle_response(self, consumer, message: Message):
+    def handle_response(self, consumer, message: DeviceMessage):
         """
         Handle the response from the device for a click event.
         """

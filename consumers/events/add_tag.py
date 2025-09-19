@@ -1,13 +1,13 @@
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.message_event import MessageEvent
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
 from consumers.events.base_event import BaseEventResponse
 from rfid.models import Rfid, Card
-from utils.web_socket_message import update_frontend_device
 
 
 class AddTagEvent(BaseEventResponse):
 
-    def handle_response(self, consumer, message: Message):
+    def handle_response(self, consumer, message: DeviceMessage):
         uid = message.payload.get("uid", None)
         name = message.payload.get("name", None)
         if not uid:
@@ -32,4 +32,4 @@ class AddTagEvent(BaseEventResponse):
                 status = 201
         rfid.pending.remove(MessageEvent.ADD_TAG.value)
         rfid.save(update_fields=["pending"])
-        update_frontend_device(rfid, status)
+        FrontendMessenger().update_device(rfid, status)

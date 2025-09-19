@@ -1,11 +1,11 @@
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.message_event import MessageEvent
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
 from consumers.events.base_event import BaseEventRequest
 
 
 class OnHoldEvent(BaseEventRequest):
 
-    def handle_request(self, consumer, message: Message):
+    def handle_request(self, consumer, message: DeviceMessage):
         """
         Handle the incoming request for a hold event.
         """

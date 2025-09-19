@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 from asgiref.sync import async_to_sync
 
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.device_message import get_event_request
-from consumers.communication_protocol.message_event import MessageEvent
+from consumers.router_message.builders.basic import get_event_request
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
 
 from device.models import Device
 
@@ -25,7 +25,7 @@ class BaseEvent(ABC):
         return [get_event_request(event) for event in events]
 
     @async_to_sync
-    async def send_actions_request(self, actions: list[Message], consumer):
+    async def send_actions_request(self, actions: list[DeviceMessage], consumer):
         for action in actions:
             await consumer.router_send(action.to_json())
 
@@ -37,7 +37,7 @@ class BaseEventRequest(BaseEvent):
     """
 
     @abstractmethod
-    def handle_request(self, consumer, message: Message):
+    def handle_request(self, consumer, message: DeviceMessage):
         """
         Handle the incoming request.
         This method should be implemented by subclasses to process the request.
@@ -52,7 +52,7 @@ class BaseEventResponse(BaseEvent):
     """
 
     @abstractmethod
-    def handle_response(self, consumer, message: Message):
+    def handle_response(self, consumer, message: DeviceMessage):
         """
         Handle the response from the server.
         This method should be implemented by subclasses to process the response.

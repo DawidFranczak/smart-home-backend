@@ -1,13 +1,12 @@
-from django.contrib.admin.templatetags.admin_modify import register
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from consumers.frontend_message.messenger import FrontendMessenger
 from device.models import Device, Event
 from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
 from event.utils import get_models_with_supported_actions
-from utils.web_socket_message import update_frontend_device
 
 
 class CreateDeleteEvent(APIView):
@@ -24,7 +23,7 @@ class CreateDeleteEvent(APIView):
             event=request.data["event"],
             extra_settings=request.data["extra_settings"],
         )
-        update_frontend_device(event.device)
+        FrontendMessenger().update_device(event.device)
         return Response(EventSerializer(event).data, 201)
 
     def delete(self, request, *args, **kwargs):
@@ -32,7 +31,7 @@ class CreateDeleteEvent(APIView):
         device_id = event.device.id
         event.delete()
         device = get_object_or_404(Device, pk=device_id)
-        update_frontend_device(device)
+        FrontendMessenger().update_device(device)
         return Response({}, 200)
 
 

@@ -1,8 +1,8 @@
-from consumers.communication_protocol.message import Message
+from consumers.router_message.device_message import DeviceMessage
 from consumers.events.base_event import BaseEventResponse
 
 
 class OnEvent(BaseEventResponse):
 
-    def handle_response(self, consumer, message: Message):
+    def handle_response(self, consumer, message: DeviceMessage):
         pass

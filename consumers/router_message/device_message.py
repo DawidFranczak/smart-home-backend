@@ -2,10 +2,11 @@ import re
 from pydantic import BaseModel, field_validator, model_validator, ValidationError
 from .message_event import MessageEvent
 from .message_type import MessageType
-from consumers.communication_protocol.payload.mapper import PAYLOAD_MAPPING
+from consumers.router_message.payload.basic import SerializerDataResponse
+from consumers.router_message.payload.payload_mapper import PAYLOAD_MAPPING
 
 
-class Message(BaseModel):
+class DeviceMessage(BaseModel):
     message_type: MessageType
     message_event: MessageEvent
     device_id: str
@@ -31,5 +32,7 @@ class Message(BaseModel):
             if self.message_type == MessageType.REQUEST
             else payload_type[1]
         )
+        if model is SerializerDataResponse:
+            return self
         self.payload = model(**self.payload)
         return self

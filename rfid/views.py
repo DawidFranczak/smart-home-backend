@@ -5,9 +5,10 @@ from rest_framework.generics import (
     DestroyAPIView,
 )
 from rest_framework.response import Response
-from consumers.communication_protocol.message_event import MessageEvent
+
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.message_event import MessageEvent
 from device.serializers.device import DeviceSerializer
-from utils.web_socket_message import update_frontend_device
 from .command import add_card
 from .serializer import CardSerializer
 from .models import Card, Rfid
@@ -40,7 +41,7 @@ class CardDestroy(DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         rfid_id = self.get_object().rfid.id
         super().delete(request, *args, **kwargs)
-        update_frontend_device(Rfid.objects.get(id=rfid_id))
+        FrontendMessenger().update_device(Rfid.objects.get(id=rfid_id))
         return Response(status=204)
 
 

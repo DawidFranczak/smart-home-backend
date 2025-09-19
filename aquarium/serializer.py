@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
-from consumers.communication_protocol.device_message import set_settings_request
+from consumers.frontend_message.frontend_message import FrontendMessage
+from consumers.frontend_message.frontend_message_type import FrontendMessageType
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.builders.basic import set_settings_request
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.messenger import DeviceMessenger
 from utils.check_hour_in_range import check_hour_in_range
-from utils.web_socket_message import send_to_device, update_frontend_device
 from .models import Aquarium
 
 
@@ -46,10 +50,10 @@ class AquariumSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
-        new_data = AquariumSerializerDevice(instance).data
-        request = set_settings_request(instance, new_data)
-        send_to_device(instance.get_router_mac(), request.to_json())
-        update_frontend_device(instance, 200)
+        new_data: dict = AquariumSerializerDevice(instance).data
+        request: DeviceMessage = set_settings_request(instance.mac, new_data)
+        DeviceMessenger().send(instance.get_router_mac(), request)
+        FrontendMessenger().update_device(instance, 200)
         return instance
 
 

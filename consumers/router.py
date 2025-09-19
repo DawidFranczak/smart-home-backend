@@ -5,12 +5,12 @@ from django.utils import timezone
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from consumers.communication_protocol.message import Message
-from consumers.event_manager import EventManager
+from consumers.router_message.device_message import DeviceMessage
+from consumers.events.event_manager import EventManager
 from device.models import Router, Device
 from device.serializers.router import RouterSerializer
-from consumers.frontend_message_type import FrontendMessageType
-from utils.web_socket_message import update_frontend_device
+from consumers.frontend_message.frontend_message_type import FrontendMessageType
+from consumers.frontend_message.messenger import FrontendMessenger
 
 
 class RouterConsumer(AsyncWebsocketConsumer):
@@ -60,7 +60,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
-            data = Message.model_validate_json(text_data)
+            data = DeviceMessage.model_validate_json(text_data)
             await self.event_manager.handle_event(data)
         except ValidationError as e:
             print("Error in message", e)
@@ -104,7 +104,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
             device.is_online = False
             device.last_seen = timezone.now()
             device.save(update_fields=["is_online", "last_seen"])
-            update_frontend_device(device)
+            FrontendMessenger().update_device(device)
 
     ########################### utils ########################################
 

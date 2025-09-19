@@ -1,12 +1,12 @@
-from asgiref.sync import async_to_sync
 from datetime import datetime
 
-from consumers.communication_protocol.message import Message
-from consumers.communication_protocol.payload.basic import DeviceConnectRequest
-from consumers.communication_protocol.device_message import set_settings_response
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.builders.basic import set_settings_response
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.messenger import DeviceMessenger
+from consumers.router_message.payload.basic import DeviceConnectRequest
 from consumers.events.base_event import BaseEventRequest
 from device_registry import DeviceRegistry
-from utils.web_socket_message import update_frontend_device
 
 from user.models import Home
 from device.models import Device
@@ -15,7 +15,7 @@ from device.models import Device
 class DeviceConnectEvent(BaseEventRequest):
     """Handles device connection events by updating or creating device records."""
 
-    def handle_request(self, consumer, message: Message):
+    def handle_request(self, consumer, message: DeviceMessage):
         device = self._get_device(message.device_id)
         if not device:
             device = self._create_new_device(
@@ -31,12 +31,11 @@ class DeviceConnectEvent(BaseEventRequest):
         serializer = register.get_serializer_device(device.fun)
         model = register.get_model(device.fun)
         message = set_settings_response(
-            message.message_id,
-            message.device_id,
+            message,
             serializer(model.objects.get(pk=device.pk)).data,
         )
-        async_to_sync(consumer.router_send)(message.model_dump_json())
-        update_frontend_device(device)
+        DeviceMessenger().send(consumer.mac, message)
+        FrontendMessenger().update_device(device)
 
     def _create_new_device(
         self, mac: str, payload: DeviceConnectRequest, home: Home

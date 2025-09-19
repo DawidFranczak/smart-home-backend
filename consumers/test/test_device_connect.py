@@ -1,8 +1,8 @@
 import pytest
 from aquarium.models import Aquarium
-from consumers.communication_protocol.Message import Message
-from consumers.communication_protocol.message_event import MessageEvent
-from consumers.communication_protocol.message_type import MessageType
+from consumers.router_message.Message import Message
+from consumers.router_message.message_event import MessageEvent
+from consumers.router_message.message_type import MessageType
 from consumers.events.device_connect import DeviceConnectEvent
 
 

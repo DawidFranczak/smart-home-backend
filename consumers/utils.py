@@ -5,7 +5,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth.models import User
 from channels.db import database_sync_to_async
 
-from consumers.communication_protocol.message import Message
+from consumers.router_message.device_message import DeviceMessage
 
 
 @database_sync_to_async
@@ -24,7 +24,7 @@ def validate_user(token):
         return None
 
 
-async def send_to_router(data: Message, router_mac: str):
+async def send_to_router(data: DeviceMessage, router_mac: str):
     await get_channel_layer().group_send(
         f"router_{router_mac}",
         {"type": "router_send", "data": data.to_json()},

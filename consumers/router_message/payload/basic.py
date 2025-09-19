@@ -5,15 +5,29 @@ from device_registry import DeviceRegistry
 
 
 class EmptyRequest(BaseModel):
+    """Used for request events without payload."""
+
     pass
 
 
 class EmptyResponse(BaseModel):
+    """Used for response events without payload."""
+
+    pass
+
+
+class SerializerDataResponse(BaseModel):
+    """
+    Marker class used in PAYLOAD_MAPPING to indicate
+    that the payload comes from a DRF serializer and
+    should be treated as a raw validated dict.
+    """
+
     pass
 
 
 class BasicResponse(BaseModel):
-    message: Literal["accepted", "rejected"]
+    status: Literal["accepted", "rejected"]
 
 
 class DeviceConnectRequest(BaseModel):
