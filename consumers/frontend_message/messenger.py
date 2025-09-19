@@ -18,12 +18,15 @@ class FrontendMessenger:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super(FrontendMessenger, cls).__new__(cls)
+                    cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self):
         """Initialize the Channels layer."""
+        if self._initialized:
+            return
         self.channel_layer = get_channel_layer()
+        self._initialized = True
 
     def update_device(self, device: Device, status=200):
         """Send an update message for a specific device to the frontend.

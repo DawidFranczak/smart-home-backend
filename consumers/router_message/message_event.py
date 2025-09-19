@@ -6,6 +6,7 @@ class MessageEvent(str, Enum):
     DEVICE_DISCONNECT = "device_disconnect"
     HEALTH_CHECK = "health_check"
     SET_SETTINGS = "set_settings"
+    GET_SETTINGS = "get_settings"
     ADD_TAG = "add_tag"
     ON_READ = "on_read"
     ON_READ_SUCCESS = "on_read_success"

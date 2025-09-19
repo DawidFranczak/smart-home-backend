@@ -1,4 +1,5 @@
 import re
+from typing import Any, Union
 from pydantic import BaseModel, field_validator, model_validator, ValidationError
 from .message_event import MessageEvent
 from .message_type import MessageType
@@ -11,7 +12,7 @@ class DeviceMessage(BaseModel):
     message_event: MessageEvent
     device_id: str
     message_id: str
-    payload: dict | BaseModel
+    payload: Any
 
     @field_validator("device_id", mode="after")
     def validate_mac(cls, value):
@@ -32,7 +33,7 @@ class DeviceMessage(BaseModel):
             if self.message_type == MessageType.REQUEST
             else payload_type[1]
         )
-        if model is SerializerDataResponse:
+        if model is SerializerDataResponse and isinstance(self.payload, dict):
             return self
         self.payload = model(**self.payload)
         return self
