@@ -24,13 +24,6 @@ def validate_user(token):
         return None
 
 
-async def send_to_router(data: DeviceMessage, router_mac: str):
-    await get_channel_layer().group_send(
-        f"router_{router_mac}",
-        {"type": "router_send", "data": data.to_json()},
-    )
-
-
 def send_to_camera_consumer(token: str, data: str, message_event: str):
     group_name = get_camera_channel_name(token)
     async_to_sync(get_channel_layer().group_send)(

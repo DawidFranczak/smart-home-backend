@@ -8,8 +8,6 @@ class CameraAnswerEvent(BaseEventResponse):
 
     def handle_response(self, consumer, message: DeviceMessage):
         payload = message.payload
-        token = payload.get("token")
-        data = payload.get("answer")
-        if not token or not data:
-            return
+        token = payload.token
+        data = payload.answer.model_dump_json()
         send_to_camera_consumer(token, data, message.message_event)

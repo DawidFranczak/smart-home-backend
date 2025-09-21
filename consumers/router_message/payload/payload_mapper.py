@@ -26,8 +26,8 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.TOGGLE: (SerializerDataResponse, BasicResponse),
     MessageEvent.ACCESS_GRANTED: (AccessGrantedPayload, BasicResponse),
     MessageEvent.ACCESS_DENIED: (AccessDeniedPayload, BasicResponse),
-    MessageEvent.CAMERA_OFFER: (CameraOfferPayload, BasicResponse),
-    MessageEvent.CAMERA_ANSWER: (CameraAnswerPayload, BasicResponse),
+    MessageEvent.CAMERA_OFFER: (CameraOfferRequest, BasicResponse),
+    MessageEvent.CAMERA_ANSWER: (EmptyRequest, CameraAnswerResponse),
     MessageEvent.CAMERA_DISCONNECT: (CameraDisconnectPayload, BasicResponse),
-    MessageEvent.CAMERA_ERROR: (CameraErrorPayload, BasicResponse),
+    MessageEvent.CAMERA_ERROR: (CameraError, CameraError),
 }

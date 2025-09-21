@@ -5,7 +5,8 @@ from uuid import uuid4
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.message_event import MessageEvent
 from consumers.router_message.message_type import MessageType
-from consumers.utils import validate_user, send_to_router, get_camera_channel_name
+from consumers.router_message.messenger import DeviceMessenger
+from consumers.utils import validate_user, get_camera_channel_name
 
 
 class CameraConsumer(AsyncWebsocketConsumer):
@@ -52,7 +53,7 @@ class CameraConsumer(AsyncWebsocketConsumer):
             message = self.message_camera_offer(data)
         else:
             return
-        await send_to_router(message, self.router_mac)
+        await DeviceMessenger().send_async(self.router_mac, message)
 
     async def disconnect(self, code):
         if self.token:
