@@ -1,6 +1,8 @@
 from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.device_message import DeviceMessage
 from consumers.events.base_event import BaseEventResponse
+from device.serializers.device import DeviceSerializer
+from device_registry import DeviceRegistry
 
 
 class SetSettings(BaseEventResponse):
@@ -13,4 +15,4 @@ class SetSettings(BaseEventResponse):
         device = self._get_device(message.device_id)
         if not device:
             return
-        FrontendMessenger().update_device(device)
+        FrontendMessenger().update_device(device.home.id, DeviceSerializer(device).data)

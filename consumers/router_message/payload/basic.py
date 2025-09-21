@@ -27,7 +27,7 @@ class SerializerDataResponse(BaseModel):
 
 
 class BasicResponse(BaseModel):
-    status: str
+    status: Literal["accepted", "rejected"]
 
 
 class DeviceConnectRequest(BaseModel):

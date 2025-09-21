@@ -28,7 +28,7 @@ class FrontendMessenger:
         self.channel_layer = get_channel_layer()
         self._initialized = True
 
-    def update_device(self, home_id: int, data: dict, status=200):
+    def update_device(self, home_id: int, data: dict, status=200) -> None:
         """Send an update message for a specific device to the frontend.
 
         Args:
@@ -54,7 +54,7 @@ class FrontendMessenger:
             f"home_{home_id}",
             {
                 "type": "send_to_frontend",
-                "data": message.model_dump(),
+                "data": message.model_dump_json(),
             },
         )
 

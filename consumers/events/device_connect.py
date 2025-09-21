@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from consumers.frontend_message.frontend_message import FrontendMessage
+from consumers.frontend_message.frontend_message_type import FrontendMessageType
+from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.builders.basic import basic_response
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.messenger import DeviceMessenger
@@ -37,10 +40,18 @@ class DeviceConnectEvent(BaseEventRequest):
         wifi_strength = payload.wifi_strength
         register = DeviceRegistry()
         model = register.get_model(payload.fun)
-        return model.objects.create(
+        serializer = register.get_serializer(payload.fun)
+        device = model.objects.create(
             home=home,
             fun=fun,
             mac=mac,
             wifi_strength=wifi_strength,
             is_online=True,
         )
+        message = FrontendMessage(
+            action=FrontendMessageType.NEW_DEVICE_CONNECTED,
+            data=serializer(device).data,
+            status=200,
+        )
+        FrontendMessenger().send(device.home.pk, message)
+        return device

@@ -3,6 +3,8 @@ from datetime import datetime
 from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.device_message import DeviceMessage
 from consumers.events.base_event import BaseEventRequest
+from device.serializers.device import DeviceSerializer
+from device_registry import DeviceRegistry
 
 
 class DeviceDisconnectEvent(BaseEventRequest):
@@ -18,4 +20,4 @@ class DeviceDisconnectEvent(BaseEventRequest):
         device.is_online = False
         device.pending = []
         device.save(update_fields=["last_seen", "is_online", "pending"])
-        FrontendMessenger().update_device(device)
+        FrontendMessenger().update_device(device.home.pk, DeviceSerializer(device).data)

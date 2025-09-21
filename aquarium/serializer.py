@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-from consumers.frontend_message.frontend_message import FrontendMessage
-from consumers.frontend_message.frontend_message_type import FrontendMessageType
-from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.builders.basic import set_settings_request
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.messenger import DeviceMessenger
@@ -53,7 +50,6 @@ class AquariumSerializer(serializers.ModelSerializer):
         new_data: dict = AquariumSerializerDevice(instance).data
         request: DeviceMessage = set_settings_request(instance.mac, new_data)
         DeviceMessenger().send(instance.get_router_mac(), request)
-        FrontendMessenger().update_device(instance, 200)
         return instance
 
 

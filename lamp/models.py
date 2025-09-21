@@ -16,8 +16,9 @@ class LampAction(Enum):
 
 
 class Lamp(Device):
-    light_start = models.TimeField(default=models.TimeField(default=default_time))
-    light_stop = models.TimeField(default=models.TimeField(default=default_time))
+    led_start = models.TimeField(default=default_time)
+    light_start = models.TimeField(default=default_time)
+    light_stop = models.TimeField(default=default_time)
     brightness = models.SmallIntegerField(default=100)
     step = models.SmallIntegerField(default=21)
     lighting_time = models.SmallIntegerField(default=10)

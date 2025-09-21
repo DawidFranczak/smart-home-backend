@@ -44,7 +44,10 @@ class ListCreateDevice(ListCreateAPIView):
             return get_list_or_404(
                 model, home__users=self.request.user, room__isnull=False
             )
-        return Device.objects.filter(Q(home__users=self.request.user),Q(room__user=self.request.user)|Q(room__visibility="PU"))
+        return Device.objects.filter(
+            Q(home__users=self.request.user),
+            Q(room__user=self.request.user) | Q(room__visibility="PU"),
+        )
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -63,8 +66,3 @@ class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Device.objects.filter(home__users=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        obj = get_object_or_404(Device, pk=kwargs.get("pk", 0))
-        request.user.favourite.device.remove(obj)
-        return super().update(request, *args, **kwargs)

@@ -3,13 +3,14 @@ from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.base_event import BaseEventResponse
 from rfid.models import Rfid, Card
+from rfid.serializer import RfidSerializer
 
 
 class AddTagEvent(BaseEventResponse):
 
     def handle_response(self, consumer, message: DeviceMessage):
-        uid = message.payload.get("uid", None)
-        name = message.payload.get("name", None)
+        uid = message.payload.uid
+        name = message.payload.name
         if not uid:
             return
 
@@ -32,4 +33,6 @@ class AddTagEvent(BaseEventResponse):
                 status = 201
         rfid.pending.remove(MessageEvent.ADD_TAG.value)
         rfid.save(update_fields=["pending"])
-        FrontendMessenger().update_device(rfid, status)
+        FrontendMessenger().update_device(
+            rfid.home.id, RfidSerializer(rfid).data, status
+        )

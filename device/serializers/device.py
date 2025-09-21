@@ -36,15 +36,18 @@ class DeviceSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         model_class, serializer_class = self._get_device_serializer(instance)
+        device = model_class.objects.get(pk=instance.id)
         serializer = serializer_class(
-            model_class.objects.get(pk=instance.id),
+            device,
             data=self.initial_data,
             context=self.context,
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        FrontendMessenger().update_device(instance, 200)
+        FrontendMessenger().update_device(
+            instance.home.id, DeviceSerializer(device).data
+        )
         return instance
 
     def create(self, validated_data):

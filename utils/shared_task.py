@@ -18,4 +18,4 @@ def check_add_card_request(rfid_id):
     except ValueError:
         return
     rfid.save(update_fields=["pending"])
-    FrontendMessenger().update_device(rfid, 404)
+    # FrontendMessenger().update_device(rfid, 404)

@@ -60,6 +60,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
+            print(text_data)
             data = DeviceMessage.model_validate_json(text_data)
             await self.event_manager.handle_event(data)
         except ValidationError as e:

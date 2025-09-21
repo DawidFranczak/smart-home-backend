@@ -1,10 +1,17 @@
 from pydantic import BaseModel
-class AddTagPayload(BaseModel):
-    pass
+
+
+class AddTagRequest(BaseModel):
+    name: str
+
+
+class AddTagResponse(BaseModel):
+    name: str
+    uid: int
 
 
 class OnReadPayload(BaseModel):
-    pass
+    uid: int
 
 
 class OnReadSuccessPayload(BaseModel):
@@ -13,6 +20,7 @@ class OnReadSuccessPayload(BaseModel):
 
 class OnReadFailurePayload(BaseModel):
     pass
+
 
 class AccessGrantedPayload(BaseModel):
     pass

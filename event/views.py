@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from consumers.frontend_message.messenger import FrontendMessenger
 from device.models import Device, Event
+from device.serializers.device import DeviceSerializer
 from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
 from event.utils import get_models_with_supported_actions
@@ -16,14 +17,17 @@ class CreateDeleteEvent(APIView):
         return Device.objects.filter(room__user=self.request.user)
 
     def post(self, request, *args, **kwargs):
+        device = get_object_or_404(Device, pk=request.data["device"])
         event = Event.objects.create(
-            device=get_object_or_404(Device, pk=request.data["device"]),
+            device=device,
             target_device=get_object_or_404(Device, pk=request.data["target_device"]),
             action=request.data["action"],
             event=request.data["event"],
             extra_settings=request.data["extra_settings"],
         )
-        FrontendMessenger().update_device(event.device)
+        FrontendMessenger().update_device(
+            device.home.id, DeviceSerializer(device).data, 200
+        )
         return Response(EventSerializer(event).data, 201)
 
     def delete(self, request, *args, **kwargs):
@@ -31,7 +35,9 @@ class CreateDeleteEvent(APIView):
         device_id = event.device.id
         event.delete()
         device = get_object_or_404(Device, pk=device_id)
-        FrontendMessenger().update_device(device)
+        FrontendMessenger().update_device(
+            device.home.id, DeviceSerializer(device).data, 200
+        )
         return Response({}, 200)
 
 
