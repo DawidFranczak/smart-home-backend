@@ -10,7 +10,7 @@ class AddTagResponse(BaseModel):
     uid: int
 
 
-class OnReadPayload(BaseModel):
+class OnReadRequest(BaseModel):
     uid: int
 
 

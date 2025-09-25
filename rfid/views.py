@@ -11,7 +11,7 @@ from consumers.router_message.builders.rfid import add_tag_request
 from consumers.router_message.message_event import MessageEvent
 from consumers.router_message.messenger import DeviceMessenger
 from device.serializers.device import DeviceSerializer
-from .serializer import CardSerializer, RfidSerializer
+from .serializer import CardSerializer
 from .models import Card, Rfid
 from utils.shared_task import check_add_card_request
 from settings import Settings
@@ -43,7 +43,7 @@ class CardDestroy(DestroyAPIView):
         rfid = self.get_object().rfid
         home_id = rfid.home.id
         super().delete(request, *args, **kwargs)
-        FrontendMessenger().update_device(home_id, RfidSerializer(rfid).data, 200)
+        FrontendMessenger().update_device(home_id, DeviceSerializer(rfid).data, 200)
         return Response(status=204)
 
 

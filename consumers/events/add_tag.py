@@ -2,8 +2,8 @@ from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.base_event import BaseEventResponse
+from device.serializers.device import DeviceSerializer
 from rfid.models import Rfid, Card
-from rfid.serializer import RfidSerializer
 
 
 class AddTagEvent(BaseEventResponse):
@@ -34,5 +34,5 @@ class AddTagEvent(BaseEventResponse):
         rfid.pending.remove(MessageEvent.ADD_TAG.value)
         rfid.save(update_fields=["pending"])
         FrontendMessenger().update_device(
-            rfid.home.id, RfidSerializer(rfid).data, status
+            rfid.home.id, DeviceSerializer(rfid).data, status
         )
