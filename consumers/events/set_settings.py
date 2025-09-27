@@ -15,4 +15,6 @@ class SetSettings(BaseEventResponse):
         device = self._get_device(message.device_id)
         if not device:
             return
-        FrontendMessenger().update_device(device.home.id, DeviceSerializer(device).data)
+        FrontendMessenger().update_frontend(
+            device.home.id, DeviceSerializer(device).data
+        )

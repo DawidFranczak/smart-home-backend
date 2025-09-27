@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from pydantic import ValidationError
 from django.db.models import QuerySet
@@ -5,9 +6,12 @@ from django.utils import timezone
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
+
+from consumers.router_message.builders.basic import get_connected_devices_request
 from consumers.router_message.device_message import DeviceMessage
 from consumers.events.event_manager import EventManager
 from device.models import Router, Device
+from device.serializers.device import DeviceSerializer
 from device.serializers.router import RouterSerializer
 from consumers.frontend_message.frontend_message_type import FrontendMessageType
 from consumers.frontend_message.messenger import FrontendMessenger
@@ -22,6 +26,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
         self.router: Router = None
         self.event_manager = EventManager(self)
         self.home = None
+        self.counter = 0
 
     async def connect(self):
         self.mac = self.scope["url_route"]["kwargs"]["mac_address"]
@@ -38,11 +43,13 @@ class RouterConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(f"router_{self.mac}", self.channel_name)
         await self.accept()
         await self.set_home()
-        await self.send_to_frontend(
-            200,
-            FrontendMessageType.UPDATE_ROUTER,
+        await FrontendMessenger().async_update_frontend(
+            self.home.id,
             await self.get_router_serialized_data(),
+            action=FrontendMessageType.UPDATE_ROUTER,
         )
+        connected_message = get_connected_devices_request()
+        await self.send(text_data=connected_message.model_dump_json())
 
     async def disconnect(self, code):
         if not self.router:
@@ -50,10 +57,10 @@ class RouterConsumer(AsyncWebsocketConsumer):
         self.router.last_seen = datetime.now()
         self.router.is_online = False
         await sync_to_async(self.router.save)(update_fields=["last_seen", "is_online"])
-        await self.send_to_frontend(
-            200,
-            FrontendMessageType.UPDATE_ROUTER,
+        await FrontendMessenger().async_update_frontend(
+            self.home.id,
             await self.get_router_serialized_data(),
+            action=FrontendMessageType.UPDATE_ROUTER,
         )
         router_devices = await self.get_router_devices()
         await self.deactivate_all_device(router_devices)
@@ -61,7 +68,7 @@ class RouterConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         try:
             data = DeviceMessage.model_validate_json(text_data)
-            await self.event_manager.handle_event(data)
+            asyncio.create_task(self.event_manager.handle_event(data))
         except ValidationError as e:
             print("Error in message", e)
             return
@@ -104,7 +111,9 @@ class RouterConsumer(AsyncWebsocketConsumer):
             device.is_online = False
             device.last_seen = timezone.now()
             device.save(update_fields=["is_online", "last_seen"])
-            FrontendMessenger().update_device(device)
+            FrontendMessenger().update_frontend(
+                self.home.id, DeviceSerializer(device).data
+            )
 
     ########################### utils ########################################
 

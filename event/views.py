@@ -25,7 +25,7 @@ class CreateDeleteEvent(APIView):
             event=request.data["event"],
             extra_settings=request.data["extra_settings"],
         )
-        FrontendMessenger().update_device(
+        FrontendMessenger().update_frontend(
             device.home.id, DeviceSerializer(device).data, 200
         )
         return Response(EventSerializer(event).data, 201)
@@ -35,7 +35,7 @@ class CreateDeleteEvent(APIView):
         device_id = event.device.id
         event.delete()
         device = get_object_or_404(Device, pk=device_id)
-        FrontendMessenger().update_device(
+        FrontendMessenger().update_frontend(
             device.home.id, DeviceSerializer(device).data, 200
         )
         return Response({}, 200)

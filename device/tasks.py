@@ -31,6 +31,6 @@ def check_devices():
             aquarium.mac, AquariumSerializerDevice(aquarium).data
         )
         DeviceMessenger().send(aquarium.get_router_mac(), message)
-        FrontendMessenger().update_device(
+        FrontendMessenger().update_frontend(
             aquarium.home.id, DeviceSerializer(aquarium).data, 200
         )

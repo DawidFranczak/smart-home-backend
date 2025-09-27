@@ -45,7 +45,7 @@ class DeviceSerializer(ModelSerializer):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        FrontendMessenger().update_device(
+        FrontendMessenger().update_frontend(
             instance.home.id, DeviceSerializer(device).data
         )
         return instance

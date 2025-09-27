@@ -15,10 +15,6 @@ class GetSettings(BaseEventRequest, BaseEventResponse):
         if not device:
             return
         device_registry = DeviceRegistry()
-        if device.room is not None:
-            FrontendMessenger().update_device(
-                device.home.id, DeviceSerializer(device).data
-            )
         model = device_registry.get_model(device.fun)
         serializer_device = device_registry.get_serializer_device(device.fun)
         response = data_response(

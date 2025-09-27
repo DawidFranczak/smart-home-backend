@@ -43,7 +43,7 @@ class CardDestroy(DestroyAPIView):
         rfid = self.get_object().rfid
         home_id = rfid.home.id
         super().delete(request, *args, **kwargs)
-        FrontendMessenger().update_device(home_id, DeviceSerializer(rfid).data, 200)
+        FrontendMessenger().update_frontend(home_id, DeviceSerializer(rfid).data, 200)
         return Response(status=204)
 
 

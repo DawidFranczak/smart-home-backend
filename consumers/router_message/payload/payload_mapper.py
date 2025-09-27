@@ -9,6 +9,7 @@ from consumers.router_message.payload.button import *
 from consumers.router_message.message_event import MessageEvent
 
 PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
+    MessageEvent.GET_CONNECTED_DEVICES: (EmptyRequest, BasicResponse),
     MessageEvent.DEVICE_CONNECT: (DeviceConnectRequest, BasicResponse),
     MessageEvent.DEVICE_DISCONNECT: (DeviceDisconnectRequest, BasicResponse),
     MessageEvent.HEALTH_CHECK: (HealthCheckRequest, BasicResponse),

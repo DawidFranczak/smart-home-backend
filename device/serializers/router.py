@@ -17,7 +17,7 @@ class RouterSerializer(serializers.ModelSerializer):
     def get_online_device(self, obj: Router):
         return Device.objects.filter(
             room__home=obj.home,
-            last_seen__gte=timezone.now() - timezone.timedelta(minutes=10),
+            is_online=True,
         ).count()
 
     def validate_mac(self, value):

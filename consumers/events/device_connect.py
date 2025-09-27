@@ -8,7 +8,10 @@ from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.messenger import DeviceMessenger
 from consumers.router_message.payload.basic import DeviceConnectRequest
 from consumers.events.base_event import BaseEventRequest
+from device.serializers.device import DeviceSerializer
+from device.serializers.router import RouterSerializer
 from device_registry import DeviceRegistry
+from room.serializer import RoomSerializer
 
 from user.models import Home
 from device.models import Device
@@ -29,6 +32,20 @@ class DeviceConnectEvent(BaseEventRequest):
         device.is_online = True
         device.pending = []
         device.save(update_fields=["last_seen", "is_online", "pending"])
+        if device.room is not None:
+            FrontendMessenger().update_frontend(
+                device.home.id, DeviceSerializer(device).data
+            )
+            FrontendMessenger().update_frontend(
+                device.home.id,
+                RoomSerializer(device.room).data,
+                action=FrontendMessageType.UPDATE_ROOM,
+            )
+        FrontendMessenger().update_frontend(
+            device.home.id,
+            RouterSerializer(device.home.router).data,
+            action=FrontendMessageType.UPDATE_ROUTER,
+        )
         response = basic_response(message, "accepted")
         DeviceMessenger().send(consumer.mac, response)
 

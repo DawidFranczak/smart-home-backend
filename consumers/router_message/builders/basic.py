@@ -29,3 +29,7 @@ def get_event_request(event: Event):
     return build_request(
         MessageEvent(event.action), event.target_device.mac, event.extra_settings
     )
+
+
+def get_connected_devices_request() -> DeviceMessage:
+    return build_request(MessageEvent.GET_CONNECTED_DEVICES, "00:00:00:00:00:00", {})

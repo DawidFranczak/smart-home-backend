@@ -28,20 +28,36 @@ class FrontendMessenger:
         self.channel_layer = get_channel_layer()
         self._initialized = True
 
-    def update_device(self, home_id: int, data: dict, status=200) -> None:
-        """Send an update message for a specific device to the frontend.
+    def update_frontend(
+        self,
+        home_id: int,
+        data: dict,
+        status=200,
+        action=FrontendMessageType.UPDATE_DEVICE,
+    ) -> None:
 
-        Args:
-            home_id: The ID of the home for the Channels group (e.g., forms 'home_123').
-            data: The data to include in the message.
-            status: The status code to include in the message (default is 200).
-        """
         message = FrontendMessage(
-            action=FrontendMessageType.UPDATE_DEVICE,
+            action=action,
             status=status,
             data=data,
         )
         self.send(home_id, message)
+
+    async def async_update_frontend(
+        self,
+        home_id: int,
+        data: dict,
+        status=200,
+        action=FrontendMessageType.UPDATE_DEVICE,
+    ) -> None:
+        """Asynchronously update the frontend with the given data."""
+
+        message = FrontendMessage(
+            action=action,
+            status=status,
+            data=data,
+        )
+        await self.send_async(home_id, message)
 
     async def send_async(self, home_id: int, message: FrontendMessage) -> None:
         """Asynchronously send a message to the frontend.
