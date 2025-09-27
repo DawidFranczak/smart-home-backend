@@ -11,7 +11,7 @@ class DeviceRegistry:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(DeviceRegistry, cls).__new__(cls)
-                    cls._instance.devices = {}
+                    cls._instance.register = {}
         return cls._instance
 
     def __init__(self):
@@ -41,3 +41,7 @@ class DeviceRegistry:
         if fun in self.register:
             return self.register[fun]["serializer_device"]
         raise KeyError("Serializer device not registered: {}".format(fun))
+
+    @property
+    def devices(self):
+        return self.register.keys()

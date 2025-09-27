@@ -1,4 +1,4 @@
-from communication_protocol.communication_protocol import DeviceMessage
+from consumers.router_message.device_message import DeviceMessage
 from consumers.events.base_event import BaseEventResponse
 
 

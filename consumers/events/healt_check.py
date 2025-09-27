@@ -1,4 +1,4 @@
-from communication_protocol.communication_protocol import DeviceMessage
+from consumers.router_message.device_message import DeviceMessage
 from .base_event import BaseEventRequest
 
 
@@ -9,5 +9,5 @@ class HealthCheckEvent(BaseEventRequest):
         device = self._get_device(message.device_id)
         if not device:
             return
-        device.wifi_strength = message.payload.get("wifi_strength", -100)
+        device.wifi_strength = message.payload.wifi_strength
         device.save(update_fields=["last_seen", "wifi_strength", "is_online"])

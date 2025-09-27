@@ -1,6 +1,0 @@
-from enums import Enum
-
-
-class MessageType(Enum):
-    REQUEST = "request"
-    RESPONSE = "response"

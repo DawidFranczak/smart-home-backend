@@ -8,4 +8,4 @@ class StairsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Stairs
-        exclude = ["fun", "id", "port", "wifi_strength", "mac"]
+        exclude = ["fun", "id", "wifi_strength", "mac"]

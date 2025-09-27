@@ -6,7 +6,7 @@ class ButtonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Button
-        exclude = ["port", "mac"]
+        exclude = ["mac"]
 
 
 class ButtonSerializerDevice(serializers.ModelSerializer):

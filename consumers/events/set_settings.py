@@ -1,13 +1,20 @@
-from communication_protocol.communication_protocol import DeviceMessage
-from consumers.events.base_event import BaseEventRequest, BaseEventResponse
-from utils.web_socket_message import update_frontend_device
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.device_message import DeviceMessage
+from consumers.events.base_event import BaseEventResponse
+from device.serializers.device import DeviceSerializer
+from device_registry import DeviceRegistry
 
 
 class SetSettings(BaseEventResponse):
     """Handles the response for setting device settings."""
 
+    def handle_request(self, consumer, message: DeviceMessage):
+        print(message)
+
     def handle_response(self, consumer, message: DeviceMessage):
         device = self._get_device(message.device_id)
         if not device:
             return
-        update_frontend_device(device, 200)
+        FrontendMessenger().update_frontend(
+            device.home.id, DeviceSerializer(device).data
+        )

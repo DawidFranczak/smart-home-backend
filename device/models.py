@@ -35,10 +35,8 @@ class Device(models.Model):
         Home, on_delete=models.CASCADE, related_name="devices", null=True
     )
     name = models.CharField(max_length=100, default="Nieznane")
-    ip = models.CharField(max_length=100)
-    port = models.IntegerField()
     fun = models.CharField(max_length=100, default="")
-    last_seen = models.DateTimeField(auto_now_add=True,auto_created=True)
+    last_seen = models.DateTimeField(auto_now_add=True, auto_created=True)
     mac = models.CharField(max_length=100, default="")
     wifi_strength = models.IntegerField(default=0)
     pending = JSONField(default=list, blank=True)

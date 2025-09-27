@@ -1,8 +1,9 @@
-from asgiref.sync import async_to_sync
 from celery import shared_task
-from channels.layers import get_channel_layer
 from aquarium.models import Aquarium
-from communication_protocol.device_message import set_settings_request
+from aquarium.serializer import AquariumSerializerDevice
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.builders.basic import set_settings_request
+from consumers.router_message.messenger import DeviceMessenger
 from device.serializers.device import DeviceSerializer
 from utils.check_hour_in_range import check_hour_in_range
 
@@ -25,21 +26,11 @@ def check_devices():
         if not to_save:
             continue
         aquarium.save(update_fields=to_save)
-        to_device_reqeust = set_settings_request(
-            aquarium, {"led_mode": led_mode, "fluo_mode": fluo_mode}
-        )
-        async_to_sync(get_channel_layer().group_send)(
-            f"router_{aquarium.get_router_mac()}",
-            {
-                "type": "router_send",
-                "data": to_device_reqeust.to_json(),
-            },
-        )
 
-        async_to_sync(get_channel_layer().group_send)(
-            f"home_{aquarium.home.id}",
-            {
-                "type": "send_to_frontend",
-                "data": {"status": 200, "data": DeviceSerializer(aquarium).data},
-            },
+        message = set_settings_request(
+            aquarium.mac, AquariumSerializerDevice(aquarium).data
+        )
+        DeviceMessenger().send(aquarium.get_router_mac(), message)
+        FrontendMessenger().update_frontend(
+            aquarium.home.id, DeviceSerializer(aquarium).data, 200
         )

@@ -9,10 +9,7 @@ class RfidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rfid
-        exclude = [
-            "port",
-            "mac",
-        ]
+        exclude = ["mac"]
 
     def get_cards(self, obj: Rfid):
         cards = obj.cards.all()

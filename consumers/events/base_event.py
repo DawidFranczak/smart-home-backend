@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
-from asgiref.sync import sync_to_async, async_to_sync
+from asgiref.sync import async_to_sync
 
-from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.device_message import get_event_request
-from communication_protocol.message_event import MessageEvent
+from consumers.router_message.builders.basic import get_event_request
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
 
 from device.models import Device
 
@@ -27,7 +27,8 @@ class BaseEvent(ABC):
     @async_to_sync
     async def send_actions_request(self, actions: list[DeviceMessage], consumer):
         for action in actions:
-            await consumer.router_send(action.to_json())
+            print(action)
+            await consumer.router_send(action.model_dump_json())
 
 
 class BaseEventRequest(BaseEvent):

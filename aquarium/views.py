@@ -29,12 +29,12 @@ class AquariumRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
         diff_data = self._get_diff_data(request.data, instance_data)
 
         if not diff_data:
-            return Response(self.get_serializer(instance).data)
+            return Response({}, status=200)
 
         serializer = self.get_serializer(instance, data=diff_data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        return Response({}, status=200)
 
     def _get_diff_data(self, new_data, instance_data):
         return {

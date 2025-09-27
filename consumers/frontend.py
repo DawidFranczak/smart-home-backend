@@ -2,7 +2,6 @@ import json
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from consumers.frontend_message_type import FrontendMessageType
 from consumers.utils import validate_user
 
 
@@ -27,7 +26,7 @@ class UserConsumer(AsyncWebsocketConsumer):
         pass
 
     async def send_to_frontend(self, event):
-        await self.send(text_data=json.dumps(event))
+        await self.send(text_data=event["data"])
 
     async def disconnect(self, code):
         print("disconnect", code)
@@ -39,5 +38,3 @@ class UserConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_router_mac(self):
         return self.user_instance.home.first().router.mac
-
-

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from consumers.frontend_message.messenger import FrontendMessenger
 from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
-from utils.web_socket_message import update_frontend_device
 
 from ..models import (
     Device,
@@ -15,11 +15,8 @@ class DeviceSerializer(ModelSerializer):
 
     class Meta:
         model = Device
-        exclude = [
-            "port",
-            "mac",
-        ]
-        read_only_fields = ["ip", "last_seen"]
+        exclude = ["mac"]
+        read_only_fields = ["last_seen"]
 
     def get_is_favourite(self, obj: Device):
         if not obj.room:
@@ -39,15 +36,18 @@ class DeviceSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         model_class, serializer_class = self._get_device_serializer(instance)
+        device = model_class.objects.get(pk=instance.id)
         serializer = serializer_class(
-            model_class.objects.get(pk=instance.id),
+            device,
             data=self.initial_data,
             context=self.context,
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        update_frontend_device(instance, 200)
+        FrontendMessenger().update_frontend(
+            instance.home.id, DeviceSerializer(device).data
+        )
         return instance
 
     def create(self, validated_data):

@@ -2,10 +2,12 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from uuid import uuid4
-from communication_protocol.communication_protocol import DeviceMessage
-from communication_protocol.message_event import MessageEvent
-from communication_protocol.message_type import MessageType
-from consumers.utils import validate_user, send_to_router, get_camera_channel_name
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
+from consumers.router_message.message_type import MessageType
+from consumers.router_message.messenger import DeviceMessenger
+from consumers.utils import validate_user, get_camera_channel_name
+
 
 class CameraConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -17,8 +19,8 @@ class CameraConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         try:
-            token = self.scope['url_route']['kwargs']['token']
-            camera_id = self.scope['url_route']['kwargs']['pk']
+            token = self.scope["url_route"]["kwargs"]["token"]
+            camera_id = self.scope["url_route"]["kwargs"]["pk"]
         except KeyError:
             await self.close()
             return
@@ -27,7 +29,6 @@ class CameraConsumer(AsyncWebsocketConsumer):
         if not user:
             await self.close()
             return
-
 
         camera = await self._get_camera(user, camera_id)
         if not camera:
@@ -38,7 +39,9 @@ class CameraConsumer(AsyncWebsocketConsumer):
         self.camera = camera
         self.token = uuid4().hex
         await self.setup_router_mac()
-        await self.channel_layer.group_add(get_camera_channel_name(self.token), self.channel_name)
+        await self.channel_layer.group_add(
+            get_camera_channel_name(self.token), self.channel_name
+        )
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):
@@ -50,14 +53,16 @@ class CameraConsumer(AsyncWebsocketConsumer):
             message = self.message_camera_offer(data)
         else:
             return
-        await send_to_router(message, self.router_mac)
+        await DeviceMessenger().send_async(self.router_mac, message)
 
     async def disconnect(self, code):
         if self.token:
-            await self.channel_layer.group_discard(get_camera_channel_name(self.token), self.channel_name)
+            await self.channel_layer.group_discard(
+                get_camera_channel_name(self.token), self.channel_name
+            )
 
     async def camera_send(self, event):
-        if event['message_event'] == MessageEvent.CAMERA_ERROR.value:
+        if event["message_event"] == MessageEvent.CAMERA_ERROR.value:
             data = {
                 "type": MessageEvent.CAMERA_ERROR.value,
                 "error": event.get("data", "Unknown error"),
@@ -65,7 +70,7 @@ class CameraConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps(data))
             await self.close()
             return
-        data = event['data']
+        data = event["data"]
         if type(data) == dict:
             data = json.dumps(data)
         await self.send(text_data=data)
@@ -86,7 +91,7 @@ class CameraConsumer(AsyncWebsocketConsumer):
     def setup_router_mac(self):
         self.router_mac = self.user.home.first().router.mac
 
-    def message_camera_offer(self, data:dict)-> DeviceMessage:
+    def message_camera_offer(self, data: dict) -> DeviceMessage:
         return DeviceMessage(
             message_type=MessageType.REQUEST,
             message_event=MessageEvent.CAMERA_OFFER,
@@ -94,7 +99,7 @@ class CameraConsumer(AsyncWebsocketConsumer):
             payload={
                 "token": self.token,
                 "offer": data.get("offer"),
-                "rtsp": self.get_camera_rtsp()
+                "rtsp": self.get_camera_rtsp(),
             },
             message_id=uuid4().hex,
         )

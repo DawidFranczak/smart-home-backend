@@ -5,10 +5,12 @@ from rest_framework.generics import (
     DestroyAPIView,
 )
 from rest_framework.response import Response
-from communication_protocol.message_event import MessageEvent
+
+from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.builders.rfid import add_tag_request
+from consumers.router_message.message_event import MessageEvent
+from consumers.router_message.messenger import DeviceMessenger
 from device.serializers.device import DeviceSerializer
-from utils.web_socket_message import update_frontend_device
-from .command import add_card
 from .serializer import CardSerializer
 from .models import Card, Rfid
 from utils.shared_task import check_add_card_request
@@ -38,9 +40,10 @@ class CardDestroy(DestroyAPIView):
         )
 
     def delete(self, request, *args, **kwargs):
-        rfid_id = self.get_object().rfid.id
+        rfid = self.get_object().rfid
+        home_id = rfid.home.id
         super().delete(request, *args, **kwargs)
-        update_frontend_device(Rfid.objects.get(id=rfid_id))
+        FrontendMessenger().update_frontend(home_id, DeviceSerializer(rfid).data, 200)
         return Response(status=204)
 
 
@@ -58,11 +61,15 @@ class CardListCreate(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         rfid = validated_data["rfid"]
+
         if not MessageEvent.ADD_TAG.value in rfid.pending:
             rfid.pending.append(MessageEvent.ADD_TAG.value)
-        rfid.save()
+            rfid.save()
+
         serializer_data = DeviceSerializer(rfid).data
-        add_card(rfid, validated_data["name"])
+        request = add_tag_request(rfid.mac, validated_data["name"])
+        DeviceMessenger().send(rfid.get_router_mac(), request)
+
         settings = Settings()
         check_add_card_request.apply_async(
             (rfid.id,), countdown=settings.get(TimeSettingKey.ADD_TAG_WAIT, 20)

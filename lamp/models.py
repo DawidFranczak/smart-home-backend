@@ -4,6 +4,10 @@ from device.models import Device
 from enum import Enum
 
 
+def default_time():
+    return datetime.datetime.now().replace(second=0, microsecond=0).time()
+
+
 class LampAction(Enum):
     ON = "on"
     OFF = "off"
@@ -12,12 +16,9 @@ class LampAction(Enum):
 
 
 class Lamp(Device):
-    light_start = models.TimeField(
-        default=datetime.datetime.now().replace(second=0, microsecond=0)
-    )
-    light_stop = models.TimeField(
-        default=datetime.datetime.now().replace(second=0, microsecond=0)
-    )
+    led_start = models.TimeField(default=default_time)
+    light_start = models.TimeField(default=default_time)
+    light_stop = models.TimeField(default=default_time)
     brightness = models.SmallIntegerField(default=100)
     step = models.SmallIntegerField(default=21)
     lighting_time = models.SmallIntegerField(default=10)

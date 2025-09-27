@@ -3,9 +3,13 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+def get_unique_uuid():
+    return uuid4().hex
+
+
 class Home(models.Model):
     users = models.ManyToManyField(User, related_name="home")
-    add_uid = models.UUIDField(default=uuid4())
+    add_uid = models.UUIDField(default=get_unique_uuid)
 
 
 class Favourite(models.Model):

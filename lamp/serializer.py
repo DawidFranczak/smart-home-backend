@@ -1,10 +1,7 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-from django.template.context_processors import request
 from rest_framework import serializers
 
-from communication_protocol.device_message import set_settings_request, message_request
-from communication_protocol.message_event import MessageEvent
+from consumers.router_message.builders.basic import set_settings_request
+from consumers.router_message.messenger import DeviceMessenger
 from .models import Lamp
 
 
@@ -12,19 +9,13 @@ class LampSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lamp
-        exclude = [
-            "port",
-            "mac",
-        ]
+        exclude = ["mac"]
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
         data = LampSerializerDevice(instance).data
-        request = set_settings_request(instance, data)
-        async_to_sync(get_channel_layer().group_send)(
-            f"router_{instance.get_router_mac()}",
-            {"type": "router_send", "data": request.to_json()},
-        )
+        request = set_settings_request(instance.mac, data)
+        DeviceMessenger().send(instance.get_router_mac(), request)
         return instance
 
 
