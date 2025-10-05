@@ -1,12 +1,12 @@
 import os
 from threading import Lock
-import aio_pika
 from enum import Enum
 from pydantic import BaseModel
+import pika
 
 
 class QueueNames(str, Enum):
-    TEMPERATURE = "temp_queue"
+    SENSORS = "sensors_queue"
     NOTIFICATION = "notification_queue"
 
 
@@ -30,35 +30,75 @@ class RabbitMQPublisher:
         self.password = os.getenv("RABBITMQ_DJANGO_PASSWORD")
         self.address = os.getenv("RABBITMQ_ADDRESS")
         self.ampq_url = f"amqp://{self.user}:{self.password}@{self.address}/"
-        self.connection: aio_pika.RobustConnection | None = None
-        self.channel: aio_pika.Channel | None = None
-        self.queues = {}
+        self.connection = None
+        self.channel = None
+        self._setup_connection()
 
-    async def connect(self):
-        if self.connection is None or self.connection.is_closed:
-            self.connection = await aio_pika.connect_robust(self.ampq_url)
-            self.channel = await self.connection.channel()
-            for queue_name in QueueNames:
-                await self.declare_queue(queue_name)
+    def _setup_connection(self):
+        while True:
+            try:
+                self.connection = pika.BlockingConnection(
+                    pika.URLParameters(self.ampq_url)
+                )
+                self.channel = self.connection.channel()
 
-    async def declare_queue(self, queue_name: QueueNames):
-        if queue_name.value not in self.queues:
-            queue = await self.channel.declare_queue(queue_name.value, durable=True)
-            self.queues[queue_name.value] = queue
-        return self.queues[queue_name.value]
+                # Declare all queues
+                for queue_name in QueueNames:
+                    self.channel.queue_declare(queue=queue_name.value, durable=True)
 
-    async def send_message(self, queue_name: QueueNames, message: BaseModel):
-        await self.connect()
-        queue = await self.declare_queue(queue_name)
-        # await self.channel.default_exchange.publish(
-        #     aio_pika.Message(body=message.model_dump_json().encode("utf-8")),
-        #     routing_key=queue.name,
-        # )
-        await self.channel.default_exchange.publish(
-            aio_pika.Message(message.encode("utf-8")),
-            routing_key=queue.name,
-        )
+                print("RabbitMQ connection established successfully")
+                return
 
-    async def close(self):
-        if self.connection and not self.connection.is_closed:
-            await self.connection.close()
+            except Exception as e:
+                print(f"Failed to connect to RabbitMQ  {e}")
+                # Wait before retry
+                import time
+
+                time.sleep(5)
+
+    def send_message(self, queue_name: QueueNames, message: BaseModel):
+        if not self.channel or self.connection.is_closed:
+            self._setup_connection()
+
+        if not self.channel:
+            raise Exception("Failed to establish RabbitMQ connection")
+
+        try:
+            self.channel.basic_publish(
+                exchange="",
+                routing_key=queue_name.value,
+                body=message.model_dump_json().encode("utf-8"),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,
+                    content_type="application/json",
+                ),
+            )
+            print(f"Sent to {queue_name}: {message}")
+
+        except Exception as e:
+            print(f"Failed to send message to {queue_name}: {e}")
+            try:
+                if self.connection and not self.connection.is_closed:
+                    self.connection.close()
+            except:
+                pass
+            self.connection = None
+            self.channel = None
+            raise
+
+    def is_connected(self):
+        return self.connection and not self.connection.is_closed and self.channel
+
+    def close(self):
+        try:
+            if self.connection and not self.connection.is_closed:
+                self.connection.close()
+                print("RabbitMQ connection closed")
+        except Exception as e:
+            print(f"Error closing RabbitMQ connection: {e}")
+        finally:
+            self.connection = None
+            self.channel = None
+
+
+connection = RabbitMQPublisher()

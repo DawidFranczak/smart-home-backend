@@ -2,6 +2,10 @@ from typing import Tuple, Type
 
 from consumers.router_message.payload.basic import *
 from consumers.router_message.payload.camera import *
+from consumers.router_message.payload.measurement import (
+    TemperatureRequest,
+    HumidityRequest,
+)
 from consumers.router_message.payload.rfid import *
 from consumers.router_message.payload.lamp import *
 from consumers.router_message.payload.button import *
@@ -31,4 +35,6 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.CAMERA_ANSWER: (EmptyRequest, CameraAnswerResponse),
     MessageEvent.CAMERA_DISCONNECT: (CameraDisconnectPayload, BasicResponse),
     MessageEvent.CAMERA_ERROR: (CameraError, CameraError),
+    MessageEvent.MEASURE_TEMPERATURE: (TemperatureRequest, BasicResponse),
+    MessageEvent.MEASURE_HUMIDITY: (HumidityRequest, BasicResponse),
 }

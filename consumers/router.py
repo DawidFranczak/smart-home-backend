@@ -7,7 +7,6 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 
-from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames
 from consumers.router_message.builders.basic import get_connected_devices_request
 from consumers.router_message.device_message import DeviceMessage
 from consumers.events.event_manager import EventManager
