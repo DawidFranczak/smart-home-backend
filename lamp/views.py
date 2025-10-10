@@ -1,4 +1,3 @@
-from kombu.asynchronous.http import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView

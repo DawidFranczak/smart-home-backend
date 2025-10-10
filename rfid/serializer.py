@@ -28,7 +28,7 @@ class CardSerializer(serializers.ModelSerializer):
                     "rfid",
                     "name",
                 ],
-                message="Karta o tej nazwie już istnieje",
+                message="Card with this name already exists.",
             ),
         ]
 

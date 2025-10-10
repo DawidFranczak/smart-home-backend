@@ -51,7 +51,7 @@ class DeviceSerializer(ModelSerializer):
         return instance
 
     def create(self, validated_data):
-        model_class, serializer_class = self._get_device_serializer(validated_data)
+        _, serializer_class = self._get_device_serializer(validated_data)
         serializer = serializer_class(data=self.initial_data, context=self.context)
         serializer.is_valid(raise_exception=True)
         return serializer.save()
@@ -59,10 +59,10 @@ class DeviceSerializer(ModelSerializer):
     def _get_device_serializer(self, obj: Device):
         fun: str = obj.fun.lower()
         if not fun:
-            raise serializers.ValidationError("Pole 'fun' jest wymagane.")
+            raise serializers.ValidationError("Field 'fun' is required.")
         register = DeviceRegistry()
         model_class = register.get_model(fun)
         serializer_class = register.get_serializer(fun)
         if not serializer_class:
-            raise serializers.ValidationError(f"Nieobsługiwany typ urządzenia: {fun}")
+            raise serializers.ValidationError(f"Unsupported device type: {fun}")
         return model_class, serializer_class

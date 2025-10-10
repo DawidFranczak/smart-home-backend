@@ -26,28 +26,30 @@ class DeviceConnectEvent(BaseEventRequest):
             device = self._create_new_device(
                 message.device_id, message.payload, consumer.home
             )
-            if not device:
-                return
+        if not device:
+            return
         device.last_seen = datetime.now()
         device.is_online = True
         device.pending = []
         device.save(update_fields=["last_seen", "is_online", "pending"])
+        response = basic_response(message, "accepted")
+        DeviceMessenger().send(consumer.mac, response)
+        if not device.home:
+            return
+
+        home_id = device.home.id
         if device.room is not None:
+            FrontendMessenger().update_frontend(home_id, DeviceSerializer(device).data)
             FrontendMessenger().update_frontend(
-                device.home.id, DeviceSerializer(device).data
-            )
-            FrontendMessenger().update_frontend(
-                device.home.id,
+                home_id,
                 RoomSerializer(device.room).data,
                 action=FrontendMessageType.UPDATE_ROOM,
             )
         FrontendMessenger().update_frontend(
-            device.home.id,
+            home_id,
             RouterSerializer(device.home.router).data,
             action=FrontendMessageType.UPDATE_ROUTER,
         )
-        response = basic_response(message, "accepted")
-        DeviceMessenger().send(consumer.mac, response)
 
     def _create_new_device(
         self, mac: str, payload: DeviceConnectRequest, home: Home

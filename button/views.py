@@ -9,8 +9,7 @@ class ButtonListAPIView(ListAPIView):
     serializer_class = DeviceSerializer
 
     def get_queryset(self):
-        user: AbstractBaseUser = self.request.user
-        return Button.objects.filter(room__user=user)
+        return Button.objects.filter(room__user=self.request.user)
 
 
 class ButtonRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
