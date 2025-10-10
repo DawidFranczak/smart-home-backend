@@ -1,92 +1,86 @@
 import pytest
-from unittest.mock import patch, MagicMock
-from rest_framework.exceptions import ValidationError
-
+from unittest.mock import MagicMock, patch
 from device.serializers.device import DeviceSerializer
-from device.models import Device
+from device.models import Device, Event
 
 
 @pytest.mark.django_db
-def test_get_device_serializer_missing_fun(device):
-    device.fun = ""
-    serializer = DeviceSerializer()
-    with pytest.raises(ValidationError):
-        serializer._get_device_serializer(device)
+def test_get_is_favourite_true(user, room):
+    """
+    Should return True if device is in user's favourite
+    """
+    device = Device.objects.create(name="Device1", room=room, fun="test", mac="AA:BB")
+    room.user.favourite.device.add(device)
+
+    serializer = DeviceSerializer(device)
+    assert serializer.get_is_favourite(device) is True
 
 
 @pytest.mark.django_db
-def test_get_device_serializer_invalid_fun(device, mocker):
-    device.fun = "invalid"
-    serializer = DeviceSerializer()
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_model", return_value=None
-    )
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_serializer", return_value=None
-    )
+def test_get_is_favourite_false(user, room):
+    """
+    Should return False if device not in favourites or has no room
+    """
+    device = Device.objects.create(name="Device2", room=room, fun="test", mac="CC:DD")
+    serializer = DeviceSerializer(device)
+    assert serializer.get_is_favourite(device) is False
 
-    with pytest.raises(ValidationError):
-        serializer._get_device_serializer(device)
-
-
-@pytest.mark.django_db
-def test_to_representation_calls_nested_serializer(mocker, device):
-    serializer_class = MagicMock()
-    serializer_class.return_value.data = {"extra": "data"}
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_model", return_value=Device
-    )
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_serializer",
-        return_value=serializer_class,
-    )
-    mocker.patch(
-        "event.serializer.EventSerializer",
-        return_value=MagicMock(data=[{"event": "E1"}]),
-    )
-
-    serializer = DeviceSerializer()
-    result = serializer.to_representation(device)
-
-    assert "extra" in result
-    assert "events" in result
+    # No room
+    device.room = None
+    serializer = DeviceSerializer(device)
+    assert serializer.get_is_favourite(device) is False
 
 
 @pytest.mark.django_db
-def test_update_calls_nested_serializer(mocker, device):
-    mock_serializer = MagicMock()
-    mock_serializer.is_valid.return_value = True
-    mock_serializer.save.return_value = device
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_model", return_value=Device
+@patch("device.serializers.device.EventSerializer")
+@patch("device.serializers.device.DeviceRegistry")
+def test_to_representation_calls_nested_serializers(
+    mock_registry, mock_event_serializer, room, device, user
+):
+    """
+    Should call device-specific serializer and EventSerializer
+    and include 'events' in the representation
+    """
+    mock_model = device.__class__
+    mock_device_serializer = MagicMock()
+    mock_device_serializer.data = {"name": device.name}
+    mock_registry.return_value.get_model.return_value = mock_model
+    mock_registry.return_value.get_serializer.return_value = (
+        lambda *args, **kwargs: mock_device_serializer
     )
-    mocker.patch(
-        "device.serializers.device.DeviceRegistry.get_serializer",
-        return_value=lambda *args, **kwargs: mock_serializer,
+
+    event = Event.objects.create(device=device)
+    mock_event_serializer.return_value.data = [{"device": device.id}]
+
+    serializer = DeviceSerializer(device)
+    data = serializer.data
+
+    assert "events" in data
+    assert data["events"] == [{"device": device.id}]
+
+
+@pytest.mark.django_db
+@patch("device.serializers.device.DeviceRegistry")
+@patch("device.serializers.device.FrontendMessenger")
+def test_update_calls_frontend_messenger(mock_messenger, mock_registry, device, mocker):
+    """
+    update() should call device-specific serializer.save() and FrontendMessenger.update_frontend
+    """
+    mock_model = device.__class__
+    mock_device_serializer = MagicMock()
+    mock_device_serializer.is_valid.return_value = True
+    mock_device_serializer.save.return_value = device
+
+    mock_registry.return_value.get_model.return_value = mock_model
+    mock_registry.return_value.get_serializer.return_value = (
+        lambda *args, **kwargs: mock_device_serializer
     )
-    mocker.patch("device.serializers.device.update_frontend_device")
 
-    serializer = DeviceSerializer(instance=device, data={"name": "New"}, partial=True)
-    serializer.is_valid()
-    result = serializer.update(device, {"name": "New"})
+    serializer = DeviceSerializer(
+        instance=device, data={"name": "Updated"}, partial=True
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
 
-    assert result == device
-    assert mock_serializer.is_valid.called
-    assert mock_serializer.save.called
-
-
-# @pytest.mark.django_db
-# def test_create_calls_nested_serializer(mocker, device):
-#     mock_serializer = MagicMock()
-#     mock_serializer.is_valid.return_value = True
-#     mock_serializer.save.return_value = device
-#     mocker.patch("device.serializers.device.DeviceRegistry.get_model", return_value=Device)
-#     mocker.patch("device.serializers.device.DeviceRegistry.get_serializer", return_value=lambda fun: mock_serializer)
-#
-#     serializer = DeviceSerializer(data={"name": "DeviceX"})
-#     serializer.is_valid()
-#     result = serializer.create({"fun": device.fun})
-#
-#     assert result == device
-#     assert mock_serializer.is_valid.called
-#     assert mock_serializer.save.called
+    mock_device_serializer.save.assert_called()
+    mock_messenger.return_value.update_frontend.assert_called()

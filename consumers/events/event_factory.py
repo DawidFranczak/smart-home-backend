@@ -1,4 +1,5 @@
 from consumers.events.get_settings import GetSettings
+from consumers.events.measure_temperature import MeasureTemperature
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.access_denied import AccessDeniedEvent
 from consumers.events.access_granted import AccessGrantedEvent
@@ -44,6 +45,8 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.ADD_TAG: AddTagEvent(),
         MessageEvent.CAMERA_ANSWER: CameraAnswerEvent(),
         MessageEvent.CAMERA_ERROR: CameraErrorEvent(),
+        MessageEvent.MEASURE_TEMPERATURE: MeasureTemperature(),
+        MessageEvent.MEASURE_HUMIDITY: None,
     }
     handler = handlers.get(event_type, None)
     if handler is None:
