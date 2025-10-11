@@ -1,5 +1,5 @@
-from datetime import time
 import pytest
+from datetime import time
 from unittest.mock import patch, Mock
 from aquarium.serializer import AquariumSerializer, AquariumSerializerDevice
 

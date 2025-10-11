@@ -89,3 +89,14 @@ def rfid(room, home):
         home=home,
         mac="00:31:22:33:25:55",
     )
+
+
+@pytest.fixture
+def mock_device_registry(monkeypatch):
+    """Mock DeviceRegistry to control which 'fun' values are valid."""
+
+    class MockDeviceRegistry:
+        devices = {"aquarium": {}, "lamp": {}}
+
+    monkeypatch.setattr("device_registry.DeviceRegistry", MockDeviceRegistry)
+    return MockDeviceRegistry
