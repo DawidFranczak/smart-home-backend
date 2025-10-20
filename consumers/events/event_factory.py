@@ -1,5 +1,6 @@
+from consumers.events.get_connected_devices import GetConnectedDevices
 from consumers.events.get_settings import GetSettings
-from consumers.events.measure_temperature import MeasureTemperature
+from consumers.events.on_measure_temp_hum import OnMeasureTempHum
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.access_denied import AccessDeniedEvent
 from consumers.events.access_granted import AccessGrantedEvent
@@ -29,6 +30,7 @@ def get_event_handler(event_type: MessageEvent):
         Callable: The event handler function for the specified event type.
     """
     handlers = {
+        MessageEvent.GET_CONNECTED_DEVICES: GetConnectedDevices(),
         MessageEvent.DEVICE_CONNECT: DeviceConnectEvent(),
         MessageEvent.DEVICE_DISCONNECT: DeviceDisconnectEvent(),
         MessageEvent.HEALTH_CHECK: HealthCheckEvent(),
@@ -45,8 +47,9 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.ADD_TAG: AddTagEvent(),
         MessageEvent.CAMERA_ANSWER: CameraAnswerEvent(),
         MessageEvent.CAMERA_ERROR: CameraErrorEvent(),
-        MessageEvent.MEASURE_TEMPERATURE: MeasureTemperature(),
-        MessageEvent.MEASURE_HUMIDITY: None,
+        MessageEvent.ON_MEASURE_TEMPERATURE: OnMeasureTempHum(),
+        MessageEvent.ON_MEASURE_HUMIDITY: OnMeasureTempHum(),
+        MessageEvent.ON_MEASUREMENT_TEMP_HUM: OnMeasureTempHum(),
     }
     handler = handlers.get(event_type, None)
     if handler is None:

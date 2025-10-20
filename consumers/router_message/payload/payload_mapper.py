@@ -5,6 +5,7 @@ from consumers.router_message.payload.camera import *
 from consumers.router_message.payload.measurement import (
     TemperatureRequest,
     HumidityRequest,
+    TempHumRequest,
 )
 from consumers.router_message.payload.rfid import *
 from consumers.router_message.payload.lamp import *
@@ -35,6 +36,7 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.CAMERA_ANSWER: (EmptyRequest, CameraAnswerResponse),
     MessageEvent.CAMERA_DISCONNECT: (CameraDisconnectPayload, BasicResponse),
     MessageEvent.CAMERA_ERROR: (CameraError, CameraError),
-    MessageEvent.MEASURE_TEMPERATURE: (TemperatureRequest, BasicResponse),
-    MessageEvent.MEASURE_HUMIDITY: (HumidityRequest, BasicResponse),
+    MessageEvent.ON_MEASURE_TEMPERATURE: (TemperatureRequest, SerializerDataResponse),
+    MessageEvent.ON_MEASURE_HUMIDITY: (HumidityRequest, SerializerDataResponse),
+    MessageEvent.ON_MEASUREMENT_TEMP_HUM: (TempHumRequest, SerializerDataResponse),
 }

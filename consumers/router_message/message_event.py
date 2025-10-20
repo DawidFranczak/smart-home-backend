@@ -34,6 +34,7 @@ class MessageEvent(str, Enum):
     CAMERA_DISCONNECT = "camera_disconnect"
     CAMERA_ERROR = "camera_error"
 
-    # Sensor events
-    MEASURE_TEMPERATURE = "measure_temperature"
-    MEASURE_HUMIDITY = "measure_humidity"
+    # Measurement events
+    ON_MEASURE_TEMPERATURE = "on_measure_temp"
+    ON_MEASURE_HUMIDITY = "on_measure_hum"
+    ON_MEASUREMENT_TEMP_HUM = "on_measurement_temp_hum"
