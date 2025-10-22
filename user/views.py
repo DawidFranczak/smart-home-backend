@@ -114,8 +114,13 @@ class RefreshAccessToken(APIView):
         try:
             if request.headers.get("X-Client-Type") == "mobile":
                 refresh_token_str = request.headers["Token"]
+                if not refresh_token_str:
+                    return Response({}, status=status.HTTP_403_FORBIDDEN)
             else:
                 refresh_token_str: str = request.COOKIES.get("refresh")
+                print(f"{request.COOKIES=}")
+                if not refresh_token_str:
+                    return Response({}, status=status.HTTP_403_FORBIDDEN)
             refresh_token = RefreshToken(refresh_token_str)
             return Response(
                 {"access": str(refresh_token.access_token)}, status=status.HTTP_200_OK

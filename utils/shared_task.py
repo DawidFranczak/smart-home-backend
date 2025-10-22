@@ -2,6 +2,7 @@ from celery import shared_task
 
 from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.message_event import MessageEvent
+from device.serializers.device import DeviceSerializer
 from rfid.models import Rfid
 
 
@@ -18,4 +19,4 @@ def check_add_card_request(rfid_id):
     except ValueError:
         return
     rfid.save(update_fields=["pending"])
-    # FrontendMessenger().update_device(rfid, 404)
+    FrontendMessenger().update_frontend(rfid.home.id, DeviceSerializer(rfid).data, 400)
