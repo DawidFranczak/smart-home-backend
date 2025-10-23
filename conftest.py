@@ -1,5 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
+
+from temperature.models import TempHum
 from user.models import Home, Favourite
 from room.models import Room
 from aquarium.models import Aquarium
@@ -86,6 +88,16 @@ def rfid(room, home):
         name="Test RFID",
         fun="rfid",
         room=room,
+        home=home,
+        mac="00:31:22:33:25:55",
+    )
+
+@pytest.fixture
+def temp_hum(room,home):
+    return TempHum.objects.create(
+        name="Test Temp Hum",
+        room=room,
+        fun="temp_hum",
         home=home,
         mac="00:31:22:33:25:55",
     )

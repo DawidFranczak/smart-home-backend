@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import TemperatureSensor
+from .models import TempHum
 
-admin.site.register(TemperatureSensor)
+admin.site.register(TempHum)

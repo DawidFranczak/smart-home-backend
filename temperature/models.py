@@ -1,9 +1,10 @@
 from django.db import models
 from device.models import Device
+from django.utils import timezone
 
 
-# Create your models here.
-class TemperatureSensor(Device):
-    time = models.DateTimeField(auto_now_add=False)
-    value = models.FloatField()
-    humi = models.FloatField(default="")
+class TempHum(Device):
+    battery_level = models.IntegerField(default=0)
+    temperature = models.FloatField(default=None, blank=True, null=True)
+    humidity = models.FloatField(default=None, blank=True, null=True)
+    timestamp = models.DateTimeField(default=timezone.now)
