@@ -19,10 +19,10 @@ class OnMeasureTempHum(BaseEventRequest):
             sensor = TempHum.objects.get(mac=message.device_id)
         except TempHum.DoesNotExist:
             return
+        sensor.timestamp = round_timestamp_to_nearest_hour()
+        sensor.temperature = message.payload.temperature
+        sensor.humidity = message.payload.humidity
         self.publisher.send_message(QueueNames.SENSORS, message)
         message = measurements_sleeping_time_response(message, sleeping_time())
         self.device_messanger.send(consumer.mac, message)
-        sensor.timestamp = round_timestamp_to_nearest_hour()
-        sensor.temperature = message.payload.temperature
-        sensor.humidity = message.payload.humiditye
         sensor.save(update_fields=["timestamp", "temperature", "humidity"])

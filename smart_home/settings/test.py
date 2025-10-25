@@ -133,8 +133,7 @@ CELERY_TIMEZONE = "Europe/Warsaw"
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": ["redis://localhost:6379/1"]},
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
