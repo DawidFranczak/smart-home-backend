@@ -1,12 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
+from utils.round_timestamp_to_nearest_hour import round_timestamp_to_nearest_hour
 
-class TemperatureRequest(BaseModel):
+
+class TimestampedRequest(BaseModel):
+    timestamp: datetime = Field(default_factory=round_timestamp_to_nearest_hour)
+
+
+class TemperatureRequest(TimestampedRequest):
     temperature: float
 
 
-class HumidityRequest(BaseModel):
+class HumidityRequest(TimestampedRequest):
     humidity: float
 
 

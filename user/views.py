@@ -118,7 +118,6 @@ class RefreshAccessToken(APIView):
                     return Response({}, status=status.HTTP_403_FORBIDDEN)
             else:
                 refresh_token_str: str = request.COOKIES.get("refresh")
-                print(f"{request.COOKIES=}")
                 if not refresh_token_str:
                     return Response({}, status=status.HTTP_403_FORBIDDEN)
             refresh_token = RefreshToken(refresh_token_str)

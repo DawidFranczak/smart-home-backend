@@ -19,7 +19,7 @@ class OnMeasureTempHum(BaseEventRequest):
             sensor = TempHum.objects.get(mac=message.device_id)
         except TempHum.DoesNotExist:
             return
-        sensor.timestamp = round_timestamp_to_nearest_hour()
+        sensor.timestamp = message.payload.timestamp
         sensor.temperature = message.payload.temperature
         sensor.humidity = message.payload.humidity
         self.publisher.send_message(QueueNames.SENSORS, message)
