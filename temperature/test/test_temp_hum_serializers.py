@@ -16,15 +16,14 @@ from temperature.serializer import TempHumSerializerDevice
 def test_sleeping_time(mock_now, expected_delta_hours, temp_hum):
     serializer = TempHumSerializerDevice(instance=temp_hum)
 
-    with patch("temperature.serializer.datetime") as mock_datetime, patch(
-            "temperature.serializer.time"
+    with patch("utils.sleeping_time.datetime.datetime") as mock_datetime, patch(
+        "utils.sleeping_time.time"
     ) as mock_time:
         mock_datetime.now.return_value = mock_now
         mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
         mock_time.time.return_value = mock_now.timestamp()
 
         sleeping_ms = serializer.get_sleeping_time(temp_hum)
-
         # convert ms to hours
         sleeping_hours = sleeping_ms / (1000 * 60 * 60)
         assert isinstance(sleeping_ms, int)

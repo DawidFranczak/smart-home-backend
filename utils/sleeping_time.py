@@ -1,10 +1,10 @@
 import time
-from datetime import datetime
+import datetime
 
 
 def sleeping_time():
     """Calculate sleeping time for next measurement"""
-    now = datetime.now()
+    now = datetime.datetime.now()
     timestamp = time.time()
     current_hour = now.hour
     if now.minute > 30:
