@@ -3,6 +3,7 @@ from threading import Lock
 from enum import Enum
 from pydantic import BaseModel
 import pika
+from pika.exceptions import StreamLostError, ConnectionClosed, AMQPConnectionError
 
 
 class QueueNames(str, Enum):
@@ -29,7 +30,7 @@ class RabbitMQPublisher:
         self.user = os.getenv("RABBITMQ_DJANGO_USER")
         self.password = os.getenv("RABBITMQ_DJANGO_PASSWORD")
         self.address = os.getenv("RABBITMQ_ADDRESS")
-        self.ampq_url = f"amqp://{self.user}:{self.password}@{self.address}/"
+        self.amqp_url = f"amqp://{self.user}:{self.password}@{self.address}/"
         self.connection = None
         self.channel = None
         self._setup_connection()
@@ -37,9 +38,14 @@ class RabbitMQPublisher:
     def _setup_connection(self):
         while True:
             try:
-                self.connection = pika.BlockingConnection(
-                    pika.URLParameters(self.ampq_url)
-                )
+                params = pika.URLParameters(self.amqp_url)
+                params.heartbeat = 60
+                params.blocked_connection_timeout = 300
+                params.socket_timeout = 10
+                params.connection_attempts = 3
+                params.retry_delay = 5
+
+                self.connection = pika.BlockingConnection(params)
                 self.channel = self.connection.channel()
 
                 # Declare all queues
@@ -56,38 +62,57 @@ class RabbitMQPublisher:
 
                 time.sleep(5)
 
-    def send_message(self, queue_name: QueueNames, message: BaseModel):
-        if not self.channel or self.connection.is_closed:
-            self._setup_connection()
-
-        if not self.channel:
-            raise Exception("Failed to establish RabbitMQ connection")
-
+    def _reconnect(self):
         try:
-            self.channel.basic_publish(
-                exchange="",
-                routing_key=queue_name.value,
-                body=message.model_dump_json().encode("utf-8"),
-                properties=pika.BasicProperties(
-                    delivery_mode=2,
-                    content_type="application/json",
-                ),
-            )
-            print(f"Sent to {queue_name}: {message}")
+            if self.connection and not self.connection.is_closed:
+                self.connection.close()
+        except:
+            pass
+        self.connection = None
+        self.channel = None
+        print("Reconnecting to RabbitMQ...")
+        self._setup_connection()
 
-        except Exception as e:
-            print(f"Failed to send message to {queue_name}: {e}")
+    def send_message(self, queue_name: QueueNames, message: BaseModel):
+        if not self.is_connected():
+            self._reconnect()
+
+        for attempt in range(2):
             try:
-                if self.connection and not self.connection.is_closed:
-                    self.connection.close()
-            except:
-                pass
-            self.connection = None
-            self.channel = None
-            raise
+                self.channel.basic_publish(
+                    exchange="",
+                    routing_key=queue_name.value,
+                    body=message.model_dump_json().encode("utf-8"),
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,
+                        content_type="application/json",
+                    ),
+                )
+                print(f"Sent to {queue_name}: {message}")
+                return
+
+            except (
+                StreamLostError,
+                ConnectionClosed,
+                AMQPConnectionError,
+                ConnectionResetError,
+            ) as e:
+                print(f"Connection error while sending: {e}")
+                self._reconnect()
+
+            except Exception as e:
+                print(f"Failed to send message to {queue_name}: {e}")
+                raise e
+
+        raise Exception("Failed to send message after reconnect attempt.")
 
     def is_connected(self):
-        return self.connection and not self.connection.is_closed and self.channel
+        return (
+            self.connection
+            and not self.connection.is_closed
+            and self.channel
+            and self.channel.is_open
+        )
 
     def close(self):
         try:
