@@ -1,9 +1,11 @@
 import os
-from threading import Lock
+from threading import Thread
 from enum import Enum
 from pydantic import BaseModel
+import queue
 import pika
 from pika.exceptions import StreamLostError, ConnectionClosed, AMQPConnectionError
+import time
 
 
 class QueueNames(str, Enum):
@@ -11,32 +13,58 @@ class QueueNames(str, Enum):
     NOTIFICATION = "notification_queue"
 
 
-class RabbitMQPublisher:
-    _instance = None
-    _initialized = False
-    _lock = Lock()
+class RabbitMQPublisher(Thread):
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if self._initialized:
-            return
-        self._initialized = True
-        self.user = os.getenv("RABBITMQ_DJANGO_USER")
-        self.password = os.getenv("RABBITMQ_DJANGO_PASSWORD")
-        self.address = os.getenv("RABBITMQ_ADDRESS")
-        self.amqp_url = f"amqp://{self.user}:{self.password}@{self.address}/"
+    def __init__(self, amqp_url: str):
+        super().__init__(daemon=True)
+        self.amqp_url = amqp_url
+        self.message_queue = queue.Queue()
+        self.running = True
         self.connection = None
         self.channel = None
-        self._setup_connection()
+
+    def run(self):
+        while self.running:
+            if not self.is_connected():
+                self._reconnect()
+                time.sleep(2)
+            try:
+                queue_name, message, delivery_mode = self.message_queue.get(timeout=5)
+                print(f"Received from queue: {queue_name}")
+            except queue.Empty:
+                continue
+            except Exception as e:
+                print(f"Error reading message queue: {e}")
+                continue
+            for attempt in range(2):
+                try:
+                    self.channel.basic_publish(
+                        exchange="",
+                        routing_key=queue_name,
+                        body=message,
+                        properties=pika.BasicProperties(
+                            delivery_mode=delivery_mode,
+                            content_type="application/json",
+                        ),
+                    )
+                    print(f"Sent to {queue_name}: {message}")
+                    break
+                except (
+                    StreamLostError,
+                    ConnectionClosed,
+                    AMQPConnectionError,
+                    ConnectionResetError,
+                ) as e:
+                    print(f"Connection error while sending: {e}")
+                    self._reconnect()
+
+                except Exception as e:
+                    print(f"Failed to send message to {queue_name}: {e}")
+                    time.sleep(1)
+                    break
 
     def _setup_connection(self):
-        while True:
+        for attempt in range(5):
             try:
                 params = pika.URLParameters(self.amqp_url)
                 params.heartbeat = 60
@@ -57,10 +85,9 @@ class RabbitMQPublisher:
 
             except Exception as e:
                 print(f"Failed to connect to RabbitMQ  {e}")
-                # Wait before retry
-                import time
-
                 time.sleep(5)
+        print("Could not connect to RabbitMQ after 5 attempts.")
+        time.sleep(10)
 
     def _reconnect(self):
         try:
@@ -73,39 +100,6 @@ class RabbitMQPublisher:
         print("Reconnecting to RabbitMQ...")
         self._setup_connection()
 
-    def send_message(self, queue_name: QueueNames, message: BaseModel):
-        if not self.is_connected():
-            self._reconnect()
-
-        for attempt in range(2):
-            try:
-                self.channel.basic_publish(
-                    exchange="",
-                    routing_key=queue_name.value,
-                    body=message.model_dump_json().encode("utf-8"),
-                    properties=pika.BasicProperties(
-                        delivery_mode=2,
-                        content_type="application/json",
-                    ),
-                )
-                print(f"Sent to {queue_name}: {message}")
-                return
-
-            except (
-                StreamLostError,
-                ConnectionClosed,
-                AMQPConnectionError,
-                ConnectionResetError,
-            ) as e:
-                print(f"Connection error while sending: {e}")
-                self._reconnect()
-
-            except Exception as e:
-                print(f"Failed to send message to {queue_name}: {e}")
-                raise e
-
-        raise Exception("Failed to send message after reconnect attempt.")
-
     def is_connected(self):
         return (
             self.connection
@@ -114,7 +108,13 @@ class RabbitMQPublisher:
             and self.channel.is_open
         )
 
+    def send_message(self, queue_name: QueueNames, message: BaseModel, delivery_mode=2):
+        self.message_queue.put(
+            (queue_name.value, message.model_dump_json().encode("utf-8"), delivery_mode)
+        )
+
     def close(self):
+        self.running = False
         try:
             if self.connection and not self.connection.is_closed:
                 self.connection.close()
@@ -126,4 +126,23 @@ class RabbitMQPublisher:
             self.channel = None
 
 
-connection = RabbitMQPublisher()
+publisher = None
+
+
+def start_publisher():
+    global publisher
+    if publisher is not None:
+        return
+    user = os.getenv("RABBITMQ_DJANGO_USER")
+    password = os.getenv("RABBITMQ_DJANGO_PASSWORD")
+    address = os.getenv("RABBITMQ_ADDRESS")
+    amqp_url = f"amqp://{user}:{password}@{address}/"
+    publisher = RabbitMQPublisher(amqp_url)
+    publisher.start()
+
+
+start_publisher()
+
+
+def get_publisher():
+    return publisher

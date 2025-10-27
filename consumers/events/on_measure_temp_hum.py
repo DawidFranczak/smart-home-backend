@@ -1,5 +1,5 @@
 from consumers.events.base_event import BaseEventRequest
-from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames
+from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames, get_publisher
 from consumers.router_message.builders.measurements import (
     measurements_sleeping_time_response,
 )
@@ -11,7 +11,6 @@ from temperature.models import TempHum
 class OnMeasureTempHum(BaseEventRequest):
     from consumers.router_message.messenger import DeviceMessenger
 
-    publisher = RabbitMQPublisher()
     device_messanger = DeviceMessenger()
 
     def handle_request(self, consumer, message):
@@ -22,7 +21,9 @@ class OnMeasureTempHum(BaseEventRequest):
         sensor.timestamp = message.payload.timestamp
         sensor.temperature = message.payload.temperature
         sensor.humidity = message.payload.humidity
-        self.publisher.send_message(QueueNames.SENSORS, message)
-        message = measurements_sleeping_time_response(message, sleeping_time())
-        self.device_messanger.send(consumer.mac, message)
         sensor.save(update_fields=["timestamp", "temperature", "humidity"])
+        self.device_messanger.send(
+            consumer.mac, measurements_sleeping_time_response(message, sleeping_time())
+        )
+        publisher = get_publisher()
+        publisher.send_message(QueueNames.SENSORS, message)
