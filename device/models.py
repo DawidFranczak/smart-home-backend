@@ -59,6 +59,10 @@ class Device(models.Model):
     def available_actions():
         return []
 
+    @staticmethod
+    def extra_settings():
+        return {}
+
 
 class Event(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="events")

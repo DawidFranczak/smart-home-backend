@@ -27,7 +27,6 @@ class BaseEvent(ABC):
     @async_to_sync
     async def send_actions_request(self, actions: list[DeviceMessage], consumer):
         for action in actions:
-            print(action)
             await consumer.router_send(action.model_dump_json())
 
 

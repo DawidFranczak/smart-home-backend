@@ -50,18 +50,16 @@ class GetActionsAndEvents(APIView):
         register = DeviceRegistry()
         model = register.get_model(fun)
         device = get_object_or_404(model, home__users=request.user, pk=id)
-        events = EventSerializer(device.events.all(), many=True).data
         return Response(
             {
                 "models": models,
                 "available_events": device.available_events(),
-                "active_events": events,
             },
             200,
         )
 
 
-class GetDeviceByFunction(APIView):
+class GetAvailableActionAndExtraSettings(APIView):
 
     def get(self, request):
         fun = request.query_params.get("function")
@@ -69,4 +67,7 @@ class GetDeviceByFunction(APIView):
         model = register.get_model(fun.lower())
         if not model:
             return Response([], 404)
-        return Response(model.available_actions(), 200)
+        return Response(
+            {"actions": model.available_actions(), "settings": model.extra_settings()},
+            200,
+        )
