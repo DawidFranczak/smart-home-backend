@@ -1,3 +1,4 @@
+from consumers.events.basic_event import BasicEvent
 from consumers.events.get_connected_devices import GetConnectedDevices
 from consumers.events.get_settings import GetSettings
 from consumers.events.on_measure_temp_hum import OnMeasureTempHum
@@ -36,8 +37,8 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.HEALTH_CHECK: HealthCheckEvent(),
         MessageEvent.SET_SETTINGS: SetSettings(),
         MessageEvent.GET_SETTINGS: GetSettings(),
-        MessageEvent.ON_CLICK: OnClickEvent(),
-        MessageEvent.ON_HOLD: OnHoldEvent(),
+        MessageEvent.ON_CLICK: BasicEvent(),
+        MessageEvent.ON_HOLD: BasicEvent(),
         MessageEvent.ON_READ: OnReadEvent(),
         MessageEvent.ON: OnEvent(),
         MessageEvent.BLINK: BlinkEvent(),
@@ -50,6 +51,10 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.ON_MEASURE_TEMPERATURE: OnMeasureTempHum(),
         MessageEvent.ON_MEASURE_HUMIDITY: OnMeasureTempHum(),
         MessageEvent.ON_MEASUREMENT_TEMP_HUM: OnMeasureTempHum(),
+        MessageEvent.ON_TEMPERATURE_ABOVE: BasicEvent(),
+        MessageEvent.ON_TEMPERATURE_BELOW: BasicEvent(),
+        MessageEvent.ON_HUMIDITY_ABOVE: BasicEvent(),
+        MessageEvent.ON_HUMIDITY_BELOW: BasicEvent(),
     }
     handler = handlers.get(event_type, None)
     if handler is None:

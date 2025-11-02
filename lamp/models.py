@@ -1,18 +1,13 @@
 import datetime
 from django.db import models
+
+from consumers.router_message.message_event import MessageEvent
 from device.models import Device
 from enum import Enum
 
 
 def default_time():
     return datetime.datetime.now().replace(second=0, microsecond=0).time()
-
-
-class LampAction(Enum):
-    ON = "on"
-    OFF = "off"
-    BLINK = "blink"
-    TOGGLE = "toggle"
 
 
 class Lamp(Device):
@@ -25,4 +20,13 @@ class Lamp(Device):
 
     @staticmethod
     def available_actions():
-        return [action.value for action in LampAction]
+        return [
+            MessageEvent.ON.value,
+            MessageEvent.OFF.value,
+            MessageEvent.TOGGLE.value,
+            MessageEvent.BLINK.value,
+        ]
+
+    @staticmethod
+    def extra_settings():
+        return {"reverse": "bool"}

@@ -3,8 +3,7 @@ from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames, get_publ
 from consumers.router_message.builders.measurements import (
     measurements_sleeping_time_response,
 )
-from utils.round_timestamp_to_nearest_hour import round_timestamp_to_nearest_hour
-from utils.sleeping_time import sleeping_time
+from utils.sleeping_time import waiting_time
 from temperature.models import TempHum
 
 
@@ -23,7 +22,7 @@ class OnMeasureTempHum(BaseEventRequest):
         sensor.humidity = message.payload.humidity
         sensor.save(update_fields=["timestamp", "temperature", "humidity"])
         self.device_messanger.send(
-            consumer.mac, measurements_sleeping_time_response(message, sleeping_time())
+            consumer.mac, measurements_sleeping_time_response(message, waiting_time())
         )
         publisher = get_publisher()
         publisher.send_message(QueueNames.SENSORS, message)

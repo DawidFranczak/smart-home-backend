@@ -18,15 +18,15 @@ class DeviceMessage(BaseModel):
     def validate_mac(cls, value):
         pattern = r"^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]){2}$"
         if not re.match(pattern, value) and value != "camera":
-            raise ValidationError("Invalid MAC address")
+            raise ValueError("Invalid MAC address")
         return value
 
     @model_validator(mode="after")
     def validate_payload(self):
         payload_type = PAYLOAD_MAPPING.get(self.message_event, None)
         if payload_type is None:
-            raise ValidationError(
-                f"Unsupported payload type. Did you forget to register {self.message_event.value}?"
+            raise ValueError(
+                f"Unsupported payload type. Did you forget to register {self.message_event}?",
             )
         model = (
             payload_type[0]

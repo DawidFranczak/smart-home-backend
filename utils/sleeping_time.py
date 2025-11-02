@@ -2,7 +2,7 @@ import time
 import datetime
 
 
-def sleeping_time():
+def waiting_time():
     """Calculate sleeping time for next measurement"""
     now = datetime.datetime.now()
     timestamp = time.time()
