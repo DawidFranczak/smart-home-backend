@@ -2,7 +2,7 @@ from consumers.events.base_event import BaseEventRequest, BaseEventResponse
 from consumers.router_message.device_message import DeviceMessage
 
 
-class Basic(BaseEventRequest, BaseEventResponse):
+class BasicEvent(BaseEventRequest, BaseEventResponse):
 
     def handle_request(self, consumer, message: DeviceMessage):
         device = self._get_device(message.device_id)

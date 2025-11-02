@@ -39,4 +39,8 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.ON_MEASURE_TEMPERATURE: (TemperatureRequest, SerializerDataResponse),
     MessageEvent.ON_MEASURE_HUMIDITY: (HumidityRequest, SerializerDataResponse),
     MessageEvent.ON_MEASUREMENT_TEMP_HUM: (TempHumRequest, SerializerDataResponse),
+    MessageEvent.ON_TEMPERATURE_ABOVE: (EmptyRequest, EmptyResponse),
+    MessageEvent.ON_TEMPERATURE_BELOW: (EmptyRequest, EmptyResponse),
+    MessageEvent.ON_HUMIDITY_BELOW: (EmptyRequest, EmptyResponse),
+    MessageEvent.ON_HUMIDITY_ABOVE: (EmptyRequest, EmptyResponse),
 }
