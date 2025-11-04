@@ -3,7 +3,7 @@ from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames, get_publ
 from consumers.router_message.builders.measurements import (
     measurements_sleeping_time_response,
 )
-from utils.sleeping_time import waiting_time
+from utils.waiting_time import waiting_time
 from temperature.models import TempHum
 
 
