@@ -1,4 +1,5 @@
 from rest_framework.generics import get_object_or_404
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -18,12 +19,22 @@ class CreateDeleteEvent(APIView):
 
     def post(self, request, *args, **kwargs):
         device = get_object_or_404(Device, pk=request.data["device"])
+        target_device = get_object_or_404(Device, pk=request.data["target_device"])
+        extra_settings = request.data["extra_settings"]
+        model = DeviceRegistry().get_model(target_device.fun)
+        available_extra_settings = model.extra_settings()
+        for k, v in extra_settings.items():
+            if k not in available_extra_settings:
+                return Response(
+                    {"extra_settings": "Invalid extra_settings"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
         event = Event.objects.create(
             device=device,
-            target_device=get_object_or_404(Device, pk=request.data["target_device"]),
+            target_device=target_device,
             action=request.data["action"],
             event=request.data["event"],
-            extra_settings=request.data["extra_settings"],
+            extra_settings=extra_settings,
         )
         FrontendMessenger().update_frontend(
             device.home.id, DeviceSerializer(device).data, 200
