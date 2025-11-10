@@ -13,4 +13,4 @@ class ButtonSerializerDevice(serializers.ModelSerializer):
 
     class Meta:
         model = Button
-        fields = ["name"]
+        fields = ["name", "type"]

@@ -19,12 +19,10 @@ class RfidAction(Enum):
 
 class Rfid(Device):
 
-    @staticmethod
-    def available_events():
+    def available_events(self):
         return [event.value for event in RfidEvent]
 
-    @staticmethod
-    def available_actions():
+    def available_actions(self):
         return [action.value for action in RfidAction]
 
 
