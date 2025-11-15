@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from consumers.router_message.builders.basic import set_settings_request
 from consumers.router_message.messenger import DeviceMessenger
+from utils.send_set_settings_request import send_set_settings_request
 from .models import Lamp
 
 
@@ -13,9 +14,7 @@ class LampSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
-        data = LampSerializerDevice(instance).data
-        request = set_settings_request(instance.mac, data)
-        DeviceMessenger().send(instance.get_router_mac(), request)
+        send_set_settings_request(instance)
         return instance
 
 

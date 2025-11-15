@@ -18,8 +18,7 @@ class Lamp(Device):
     step = models.SmallIntegerField(default=21)
     lighting_time = models.SmallIntegerField(default=10)
 
-    @staticmethod
-    def available_actions():
+    def available_actions(self):
         return [
             MessageEvent.ON.value,
             MessageEvent.OFF.value,
@@ -27,6 +26,5 @@ class Lamp(Device):
             MessageEvent.BLINK.value,
         ]
 
-    @staticmethod
-    def extra_settings():
+    def extra_settings(self):
         return {"reverse": "bool"}
