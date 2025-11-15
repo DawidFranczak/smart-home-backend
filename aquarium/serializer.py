@@ -4,6 +4,7 @@ from consumers.router_message.builders.basic import set_settings_request
 from consumers.router_message.device_message import DeviceMessage
 from consumers.router_message.messenger import DeviceMessenger
 from utils.check_hour_in_range import check_hour_in_range
+from utils.send_set_settings_request import send_set_settings_request
 from .models import Aquarium
 
 
@@ -47,9 +48,7 @@ class AquariumSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
-        new_data: dict = AquariumSerializerDevice(instance).data
-        request: DeviceMessage = set_settings_request(instance.mac, new_data)
-        DeviceMessenger().send(instance.get_router_mac(), request)
+        send_set_settings_request(instance)
         return instance
 
 

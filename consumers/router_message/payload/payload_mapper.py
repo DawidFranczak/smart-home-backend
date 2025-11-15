@@ -26,6 +26,7 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.ON_READ_FAILURE: (SerializerDataResponse, BasicResponse),
     MessageEvent.ON_CLICK: (SerializerDataResponse, BasicResponse),
     MessageEvent.ON_HOLD: (SerializerDataResponse, BasicResponse),
+    MessageEvent.ON_TOGGLE: (SerializerDataResponse, BasicResponse),
     MessageEvent.ON: (SerializerDataResponse, BasicResponse),
     MessageEvent.OFF: (SerializerDataResponse, BasicResponse),
     MessageEvent.BLINK: (SerializerDataResponse, BasicResponse),

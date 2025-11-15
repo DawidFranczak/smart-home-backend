@@ -3,7 +3,7 @@ from consumers.router_message.message_event import MessageEvent
 from device.models import Event
 
 
-def delete_events_on_button_type_change(new_button_type: str, instance):
+def button_type_change(new_button_type: str, instance):
     if new_button_type == instance.button_type:
         return
     event_filter = (
