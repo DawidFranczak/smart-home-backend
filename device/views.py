@@ -8,7 +8,7 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
-from device.models import Device, Router, Event
+from device.models import Device, Router
 from device_registry import DeviceRegistry
 from room.models import Room
 from .serializers.device import DeviceSerializer
@@ -75,9 +75,3 @@ class UpdateButtonType(UpdateAPIView):
 
     def get_queryset(self):
         return Device.objects.filter(home__users=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        Event.objects.filter(device=instance).delete()
-        response = super().update(request, *args, **kwargs)
-        return response

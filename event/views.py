@@ -78,7 +78,11 @@ class GetAvailableActionAndExtraSettings(APIView):
         model = register.get_model(fun.lower())
         if not model:
             return Response([], 404)
+        instance = model.objects.filter(home__users=request.user).first()
         return Response(
-            {"actions": model.available_actions(), "settings": model.extra_settings()},
+            {
+                "actions": instance.available_actions(),
+                "settings": instance.extra_settings(),
+            },
             200,
         )
