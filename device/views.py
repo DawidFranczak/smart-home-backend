@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 
@@ -63,6 +64,14 @@ class ListCreateDevice(ListCreateAPIView):
 class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DeviceSerializer
+
+    def get_queryset(self):
+        return Device.objects.filter(home__users=self.request.user)
+
+
+class UpdateButtonType(UpdateAPIView):
+    serializer_class = DeviceSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Device.objects.filter(home__users=self.request.user)

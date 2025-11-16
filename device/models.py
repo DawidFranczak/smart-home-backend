@@ -51,16 +51,13 @@ class Device(models.Model):
     def get_router_mac(self):
         return Router.objects.filter(home=self.home).only("mac").first()
 
-    @staticmethod
-    def available_events():
+    def available_events(self):
         return []
 
-    @staticmethod
-    def available_actions():
+    def available_actions(self):
         return []
 
-    @staticmethod
-    def extra_settings():
+    def extra_settings(self):
         return {}
 
 

@@ -1,4 +1,3 @@
-from django.contrib.auth.base_user import AbstractBaseUser
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 
 from device.serializers.device import DeviceSerializer

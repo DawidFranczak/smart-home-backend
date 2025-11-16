@@ -37,17 +37,23 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.HEALTH_CHECK: HealthCheckEvent(),
         MessageEvent.SET_SETTINGS: SetSettings(),
         MessageEvent.GET_SETTINGS: GetSettings(),
+        # Button
         MessageEvent.ON_CLICK: BasicEvent(),
         MessageEvent.ON_HOLD: BasicEvent(),
+        MessageEvent.ON_TOGGLE: BasicEvent(),
+        # RFID
         MessageEvent.ON_READ: OnReadEvent(),
+        MessageEvent.ADD_TAG: AddTagEvent(),
+        MessageEvent.ACCESS_DENIED: AccessDeniedEvent(),
+        MessageEvent.ACCESS_GRANTED: AccessGrantedEvent(),
+        # Lamp
         MessageEvent.ON: OnEvent(),
         MessageEvent.BLINK: BlinkEvent(),
         MessageEvent.TOGGLE: ToggleEvent(),
-        MessageEvent.ACCESS_GRANTED: AccessGrantedEvent(),
-        MessageEvent.ACCESS_DENIED: AccessDeniedEvent(),
-        MessageEvent.ADD_TAG: AddTagEvent(),
+        # Camera
         MessageEvent.CAMERA_ANSWER: CameraAnswerEvent(),
         MessageEvent.CAMERA_ERROR: CameraErrorEvent(),
+        # Temp/Hum
         MessageEvent.ON_MEASURE_TEMPERATURE: OnMeasureTempHum(),
         MessageEvent.ON_MEASURE_HUMIDITY: OnMeasureTempHum(),
         MessageEvent.ON_MEASUREMENT_TEMP_HUM: OnMeasureTempHum(),

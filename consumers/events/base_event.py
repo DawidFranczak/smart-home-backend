@@ -19,7 +19,12 @@ class BaseEvent(ABC):
             return None
 
     def get_event_request(self, device: Device, event: MessageEvent):
-        events = device.events.filter(event=event.value)
+        if device.fun == "light":
+            events = device.events.filter(event=event.value).exclude(
+                target_device__mac=device.mac
+            )
+        else:
+            events = device.events.filter(event=event.value)
         if not events.exists():
             return []
         return [get_event_request(event) for event in events]
