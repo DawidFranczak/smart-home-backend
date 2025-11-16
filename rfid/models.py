@@ -1,6 +1,8 @@
 from enum import Enum
 from django.utils import timezone
 from django.db import models
+
+from button.models import ButtonType, MonostableButtonEvent
 from device.models import Device
 
 
@@ -8,8 +10,6 @@ class RfidEvent(Enum):
     ON_READ = "on_read"
     ON_READ_SUCCESS = "on_read_success"
     ON_READ_FAILURE = "on_read_failure"
-    ON_CLICK = "on_click"
-    ON_HOLD = "on_hold"
 
 
 class RfidAction(Enum):
@@ -18,9 +18,14 @@ class RfidAction(Enum):
 
 
 class Rfid(Device):
+    button_type = models.CharField(
+        max_length=5, choices=ButtonType.choices, default=ButtonType.MONOSTABLE
+    )
 
     def available_events(self):
-        return [event.value for event in RfidEvent]
+        return [event.value for event in RfidEvent] + [
+            event.value for event in MonostableButtonEvent
+        ]
 
     def available_actions(self):
         return [action.value for action in RfidAction]

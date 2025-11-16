@@ -22,7 +22,9 @@ class CreateDeleteEvent(APIView):
         target_device = get_object_or_404(Device, pk=request.data["target_device"])
         extra_settings = request.data["extra_settings"]
         model = DeviceRegistry().get_model(target_device.fun)
-        available_extra_settings = model.extra_settings()
+        available_extra_settings = model.objects.get(
+            pk=target_device.id
+        ).extra_settings()
         for k, v in extra_settings.items():
             if k not in available_extra_settings:
                 return Response(
