@@ -1,14 +1,17 @@
 from rest_framework.generics import get_object_or_404
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from consumers.frontend_message.messenger import FrontendMessenger
+from consumers.router_message.builders.basic import get_event_request
+from consumers.router_message.messenger import DeviceMessenger
 from device.models import Device, Event
 from device.serializers.device import DeviceSerializer
 from device_registry import DeviceRegistry
 from event.serializer import EventSerializer
-from event.utils import get_models_with_supported_actions
+from utils.get_models_with_supported_actions import get_models_with_supported_actions
 
 
 class CreateDeleteEvent(APIView):
@@ -88,3 +91,18 @@ class GetAvailableActionAndExtraSettings(APIView):
             },
             200,
         )
+
+
+class TriggerEvent(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        device_id = request.data.get("id", None)
+        event_type = request.data.get("type", None)
+        if not device_id or not event_type:
+            return Response({}, HTTP_400_BAD_REQUEST)
+        device = get_object_or_404(Device, pk=device_id)
+        events = device.events.filter(event=event_type)
+        for event in events:
+            DeviceMessenger().send(device.get_router_mac(), get_event_request(event))
+        return Response({}, HTTP_200_OK)
