@@ -1,11 +1,10 @@
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import AnonymousUser
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 
 from device.serializers.device import DeviceSerializer
+from utils.get_available_for_user_device import get_available_for_user_device
 from .models import Aquarium
 
 
@@ -13,15 +12,14 @@ class AquariumList(ListAPIView):
     serializer_class = DeviceSerializer
 
     def get_queryset(self):
-        user: AbstractBaseUser | AnonymousUser = self.request.user
-        return Aquarium.objects.filter(room__user=user)
+        return get_available_for_user_device(Aquarium, self.request.user)
 
 
 class AquariumRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     serializer_class = DeviceSerializer
 
     def get_queryset(self) -> QuerySet[Aquarium, Aquarium]:
-        return Aquarium.objects.filter(room__user=self.request.user)
+        return get_available_for_user_device(Aquarium, self.request.user)
 
     def update(self, request, *args, **kwargs):
         instance: Aquarium = self.get_object()

@@ -17,7 +17,6 @@ def light_state_change(pk: int, message: DeviceMessage):
     device.save(update_fields=["on"])
     FrontendMessenger().update_frontend(device.home.pk, DeviceSerializer(device).data)
     publisher = get_publisher()
-    print(message)
     publisher.send_message(QueueNames.SENSORS, message)
 
 
