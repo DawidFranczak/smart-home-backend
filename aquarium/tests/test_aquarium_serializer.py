@@ -63,25 +63,18 @@ def test_validate_mode_sets_both_modes(aquarium, mocker):
 
 
 @pytest.mark.django_db
-@patch("aquarium.serializer.DeviceMessenger")
-@patch("aquarium.serializer.set_settings_request")
-def test_update_sends_device_message(mock_set_req, mock_messenger, aquarium):
+@patch("aquarium.serializer.send_set_settings_request")
+def test_update_sends_device_message(mock_set_req, aquarium):
     """
-    update() should call set_settings_request and DeviceMessenger.send()
+    update() should call send_set_settings_request and DeviceMessenger.send()
     """
-    mock_request = Mock()
-    mock_set_req.return_value = mock_request
-    mock_send = Mock()
-    mock_messenger.return_value.send = mock_send
 
     serializer = AquariumSerializer(
         instance=aquarium, data={"color_r": 100}, partial=True
     )
     assert serializer.is_valid()
     serializer.save()
-
-    mock_set_req.assert_called_once()
-    mock_send.assert_called_once()
+    mock_set_req.assert_called_once_with(aquarium)
 
 
 @pytest.mark.django_db

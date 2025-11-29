@@ -103,6 +103,9 @@ class TriggerEvent(APIView):
             return Response({}, HTTP_400_BAD_REQUEST)
         device = get_object_or_404(Device, pk=device_id)
         events = device.events.filter(event=event_type)
+        if not events:
+            return Response({}, HTTP_200_OK)
+        dm = DeviceMessenger()
         for event in events:
-            DeviceMessenger().send(device.get_router_mac(), get_event_request(event))
+            dm.send(device.get_router_mac(), get_event_request(event))
         return Response({}, HTTP_200_OK)

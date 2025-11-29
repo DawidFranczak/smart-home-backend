@@ -7,8 +7,12 @@ from .views import (
 )
 
 urlpatterns = [
-    path("", GetActionsAndEvents.as_view()),
-    path("<int:pk>/", CreateDeleteEvent.as_view()),
-    path("action/", GetAvailableActionAndExtraSettings.as_view()),
-    path("trigger/", TriggerEvent.as_view()),
+    path("", GetActionsAndEvents.as_view(), name="actions-and-events"),
+    path("<int:pk>/", CreateDeleteEvent.as_view(), name="event-create-delete"),
+    path(
+        "action/",
+        GetAvailableActionAndExtraSettings.as_view(),
+        name="available-actions",
+    ),
+    path("trigger/", TriggerEvent.as_view(), name="trigger-event"),
 ]
