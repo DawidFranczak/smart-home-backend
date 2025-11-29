@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from device.models import Device, Router
 from device_registry import DeviceRegistry
 from room.models import Room
+from utils.get_available_for_user_device import get_available_for_user_device
 from .serializers.device import DeviceSerializer
 from .serializers.router import RouterSerializer
 
@@ -45,10 +46,7 @@ class ListCreateDevice(ListCreateAPIView):
             return get_list_or_404(
                 model, home__users=self.request.user, room__isnull=False
             )
-        return Device.objects.filter(
-            Q(home__users=self.request.user),
-            Q(room__user=self.request.user) | Q(room__visibility="PU"),
-        )
+        return get_available_for_user_device(Device, self.request.user)
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -66,7 +64,7 @@ class RetrieveUpdateDestroyDevice(RetrieveUpdateDestroyAPIView):
     serializer_class = DeviceSerializer
 
     def get_queryset(self):
-        return Device.objects.filter(home__users=self.request.user)
+        return get_available_for_user_device(Device, self.request.user)
 
 
 class UpdateButtonType(UpdateAPIView):
@@ -74,4 +72,4 @@ class UpdateButtonType(UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Device.objects.filter(home__users=self.request.user)
+        return get_available_for_user_device(Device, self.request.user)
