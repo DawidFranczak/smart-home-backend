@@ -1,6 +1,8 @@
 from typing import Literal
 
 from pydantic import BaseModel, field_validator
+
+from consumers.router_message.device_state import DeviceState
 from device_registry import DeviceRegistry
 
 
@@ -47,6 +49,10 @@ class DeviceDisconnectRequest(BaseModel):
 
 class HealthCheckRequest(BaseModel):
     wifi_strength: int
+
+
+class StateChangeRequest(BaseModel):
+    state: DeviceState
 
 
 class SetSettingsRequest(BaseModel):

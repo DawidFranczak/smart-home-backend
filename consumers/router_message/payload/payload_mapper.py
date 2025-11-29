@@ -20,6 +20,7 @@ PAYLOAD_MAPPING: dict[MessageEvent, Tuple[Type[BaseModel], Type[BaseModel]]] = {
     MessageEvent.HEALTH_CHECK: (HealthCheckRequest, BasicResponse),
     MessageEvent.SET_SETTINGS: (SerializerDataResponse, BasicResponse),
     MessageEvent.GET_SETTINGS: (EmptyRequest, SerializerDataResponse),
+    MessageEvent.STATE_CHANGE: (StateChangeRequest, BasicResponse),
     MessageEvent.ADD_TAG: (SerializerDataResponse, AddTagResponse),
     MessageEvent.ON_READ: (OnReadRequest, BasicResponse),
     MessageEvent.ON_READ_SUCCESS: (SerializerDataResponse, BasicResponse),

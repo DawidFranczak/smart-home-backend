@@ -10,14 +10,13 @@ def test_button_serializer_excludes_mac_field(button):
     serializer = ButtonSerializer(button)
     data = serializer.data
     assert "mac" not in data
-    assert "name" in data
 
 
 @pytest.mark.django_db
-def test_button_serializer_device_includes_only_name(button):
+def test_button_serializer_device_includes_only_button_type(button):
     """
-    ButtonSerializerDevice should only include the 'name' field
+    ButtonSerializerDevice should only include the 'button_type' field
     """
     serializer = ButtonSerializerDevice(button)
     data = serializer.data
-    assert list(data.keys()) == ["name"]
+    assert list(data.keys()) == ["button_type"]

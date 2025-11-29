@@ -31,8 +31,9 @@ class AddTagEvent(BaseEventResponse):
                     name=name,
                 )
                 status = 201
-        rfid.pending.remove(MessageEvent.ADD_TAG.value)
-        rfid.save(update_fields=["pending"])
+        if MessageEvent.ADD_TAG.value in rfid.pending:
+            rfid.pending.remove(MessageEvent.ADD_TAG.value)
+            rfid.save(update_fields=["pending"])
         FrontendMessenger().update_frontend(
             rfid.home.id, DeviceSerializer(rfid).data, status
         )

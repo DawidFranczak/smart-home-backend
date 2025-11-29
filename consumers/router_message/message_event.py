@@ -9,27 +9,30 @@ class MessageEvent(str, Enum):
     HEALTH_CHECK = "health_check"
     SET_SETTINGS = "set_settings"
     GET_SETTINGS = "get_settings"
+    STATE_CHANGE = "state_change"
 
     # Button events
     ON_CLICK = "on_click"
     ON_HOLD = "on_hold"
     ON_TOGGLE = "on_toggle"
 
-    # Light events
+    # Light action
     ON = "on"
     OFF = "off"
     BLINK = "blink"
     TOGGLE = "toggle"
 
     # RFID events
-    ADD_TAG = "add_tag"
     ON_READ = "on_read"
+
+    # RFID actions
+    ADD_TAG = "add_tag"
     ON_READ_SUCCESS = "on_read_success"
     ON_READ_FAILURE = "on_read_failure"
     ACCESS_GRANTED = "access_granted"
     ACCESS_DENIED = "access_denied"
 
-    # Camera events
+    # Camera
     CAMERA_OFFER = "camera_offer"
     CAMERA_ANSWER = "camera_answer"
     CAMERA_DISCONNECT = "camera_disconnect"
