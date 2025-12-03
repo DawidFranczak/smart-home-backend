@@ -31,7 +31,10 @@ class DeviceConnectEvent(BaseEventRequest):
         device.last_seen = datetime.now()
         device.is_online = True
         device.pending = []
-        device.save(update_fields=["last_seen", "is_online", "pending"])
+        device.firmware_version = message.payload.firmware_version
+        device.save(
+            update_fields=["last_seen", "is_online", "pending", "firmware_version"]
+        )
         response = basic_response(message, "accepted")
         DeviceMessenger().send(consumer.mac, response)
         if not device.home:

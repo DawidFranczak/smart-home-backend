@@ -17,6 +17,8 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -51,6 +53,7 @@ INSTALLED_APPS = [
     "sunblind",
     "light",
     "event",
+    "firmware",
 ]
 
 MIDDLEWARE = [
@@ -133,7 +136,11 @@ SIMPLE_JWT = {
 ASGI_APPLICATION = "smart_home.asgi.application"
 
 CELERY_BEAT_SCHEDULE = {
-    "checker": {"task": "device.tasks.check_devices", "schedule": crontab(minute="*")}
+    "checker": {"task": "device.tasks.check_devices", "schedule": crontab(minute="*")},
+    "old_firmware_delete": {
+        "task": "firmware.tasks.delete_old_firmware",
+        "schedule": crontab(day_of_month="1"),
+    },
 }
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

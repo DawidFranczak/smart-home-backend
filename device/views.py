@@ -50,7 +50,9 @@ class ListCreateDevice(ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        room = get_object_or_404(Room, user=self.request.user, pk=data["room_id"])
+        room = get_object_or_404(
+            Room, Q(user=self.request.user) | Q(visibility="PU"), pk=data["room_id"]
+        )
         device = get_object_or_404(
             Device, home__users=self.request.user, pk=data["device_id"]
         )
