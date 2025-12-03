@@ -41,6 +41,7 @@ class Device(models.Model):
     wifi_strength = models.IntegerField(default=0)
     pending = JSONField(default=list, blank=True)
     is_online = models.BooleanField(default=False)
+    firmware_version = models.FloatField(default=1.0)
 
     def __str__(self):
         return self.name

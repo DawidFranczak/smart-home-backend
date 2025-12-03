@@ -33,3 +33,7 @@ def get_event_request(event: Event):
 
 def get_connected_devices_request() -> DeviceMessage:
     return build_request(MessageEvent.GET_CONNECTED_DEVICES, "00:00:00:00:00:00", {})
+
+
+def update_firmware_request(mac: str, payload: dict) -> DeviceMessage:
+    return build_request(MessageEvent.UPDATE_FIRMWARE, mac, payload)

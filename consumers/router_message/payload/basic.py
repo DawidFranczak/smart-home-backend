@@ -35,6 +35,7 @@ class BasicResponse(BaseModel):
 class DeviceConnectRequest(BaseModel):
     wifi_strength: int
     fun: str
+    firmware_version: float
 
     @field_validator("fun")
     def validate_fun(cls, value):

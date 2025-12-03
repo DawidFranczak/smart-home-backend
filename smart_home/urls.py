@@ -13,4 +13,5 @@ urlpatterns = [
     path("api/event/", include("event.urls")),
     path("api/cameras/", include("camera.urls")),
     path("api/temperature/", include("temperature.urls")),
+    path("api/firmware/", include("firmware.urls")),
 ]
