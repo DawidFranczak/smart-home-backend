@@ -56,6 +56,10 @@ class StateChangeRequest(BaseModel):
     state: DeviceState
 
 
+class FirmwareUpdateErrorRequest(BaseModel):
+    message: str
+
+
 class SetSettingsRequest(BaseModel):
     pass
 

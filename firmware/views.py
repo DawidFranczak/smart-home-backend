@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, get_object_or_404
 
 from consumers.router_message.builders.basic import update_firmware_request
+from consumers.router_message.message_event import MessageEvent
 from consumers.router_message.messenger import DeviceMessenger
 from device.serializers.device import DeviceSerializer
 from firmware.models import FirmwareDevice
@@ -25,7 +26,6 @@ class FirmwareView(APIView):
         return Response("Hello World")
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class FirmwareDownload(APIView):
     permission_classes = [AllowAny]
 
@@ -33,14 +33,12 @@ class FirmwareDownload(APIView):
         token = request.GET.get("token")
         if not token:
             return Response({}, status=HTTP_400_BAD_REQUEST)
-        print(token)
         firmware_id = cache.get(f"update_firmware_{token}")
         if not firmware_id:
             return Response({}, status=HTTP_400_BAD_REQUEST)
 
         firmware = FirmwareDevice.objects.get(id=firmware_id)
         file = firmware.file
-        print(file)
         return FileResponse(
             file.open("rb"),
             as_attachment=True,
@@ -74,6 +72,8 @@ class FirmwareUpdate(APIView):
         }
         message = update_firmware_request(device.mac, payload)
         DeviceMessenger().send(device.get_router_mac(), message)
+        device.pending.append(MessageEvent.UPDATE_FIRMWARE.value)
+        device.save(update_fields=["pending"])
         return Response(DeviceSerializer(device).data, status=200)
 
 

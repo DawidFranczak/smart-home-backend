@@ -7,3 +7,4 @@ class FrontendMessageType(Enum):
     NEW_DEVICE_CONNECTED = "new_device_connected"
     CAMERA_OFFER = "camera_offer"
     UPDATE_ROOM = "update_room"
+    UPDATE_FIRMWARE_ERROR = "update_firmware_error"

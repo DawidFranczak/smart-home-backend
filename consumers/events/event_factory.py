@@ -3,6 +3,7 @@ from consumers.events.get_connected_devices import GetConnectedDevices
 from consumers.events.get_settings import GetSettings
 from consumers.events.on_measure_temp_hum import OnMeasureTempHum
 from consumers.events.state_change import StateChange
+from consumers.events.update_firmware_error import UpdateFirmwareError
 from consumers.router_message.message_event import MessageEvent
 from consumers.events.access_denied import AccessDeniedEvent
 from consumers.events.access_granted import AccessGrantedEvent
@@ -39,6 +40,7 @@ def get_event_handler(event_type: MessageEvent):
         MessageEvent.SET_SETTINGS: SetSettings(),
         MessageEvent.GET_SETTINGS: GetSettings(),
         MessageEvent.STATE_CHANGE: StateChange(),
+        MessageEvent.UPDATE_FIRMWARE_ERROR: UpdateFirmwareError(),
         # Button
         MessageEvent.ON_CLICK: BasicEvent(),
         MessageEvent.ON_HOLD: BasicEvent(),

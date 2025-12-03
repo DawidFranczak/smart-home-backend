@@ -136,7 +136,11 @@ SIMPLE_JWT = {
 ASGI_APPLICATION = "smart_home.asgi.application"
 
 CELERY_BEAT_SCHEDULE = {
-    "checker": {"task": "device.tasks.check_devices", "schedule": crontab(minute="*")}
+    "checker": {"task": "device.tasks.check_devices", "schedule": crontab(minute="*")},
+    "old_firmware_delete": {
+        "task": "firmware.tasks.delete_old_firmware",
+        "schedule": crontab(day_of_month="1"),
+    },
 }
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

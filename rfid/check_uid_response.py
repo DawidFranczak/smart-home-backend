@@ -1,6 +1,0 @@
-from enum import Enum
-
-
-class CheckUIDResponse(Enum):
-    ACCESS_GRANTED = "access_granted"
-    ACCESS_DENIED = "access_denied"
