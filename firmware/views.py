@@ -69,6 +69,7 @@ class FirmwareUpdate(APIView):
         payload = {
             "url": settings.FIRMWARE_DEVICE_ENDPOINT + f"?token={token}",
             "version": firmware.version,
+            "to_device": device.fun,
         }
         message = update_firmware_request(device.mac, payload)
         DeviceMessenger().send(device.get_router_mac(), message)
