@@ -11,17 +11,10 @@ from ..models import (
 
 
 class DeviceSerializer(ModelSerializer):
-    is_favourite = serializers.SerializerMethodField()
-
     class Meta:
         model = Device
         exclude = ["mac"]
         read_only_fields = ["last_seen"]
-
-    def get_is_favourite(self, obj: Device):
-        if not obj.room:
-            return False
-        return obj.room.user.favourite.device.filter(pk=obj.pk).exists()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

@@ -13,11 +13,6 @@ class RoomSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
-    is_favourite = serializers.SerializerMethodField()
-
-    def get_is_favourite(self, object: Room) -> bool:
-        user = object.user
-        return user.favourite.room.filter(pk=object.id).exists()
 
     def get_device_count(self, object: Room) -> int:
         return object.devices.count()
@@ -34,7 +29,6 @@ class RoomSerializer(serializers.ModelSerializer):
             "visibility",
             "device_count",
             "active_device_count",
-            "is_favourite",
             "device",
         ]
         read_only_fields = ["home", "user"]
