@@ -8,3 +8,4 @@ class FrontendMessageType(Enum):
     CAMERA_OFFER = "camera_offer"
     UPDATE_ROOM = "update_room"
     UPDATE_FIRMWARE_ERROR = "update_firmware_error"
+    AI_RESPONSE = "ai_response"

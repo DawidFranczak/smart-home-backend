@@ -43,4 +43,4 @@ class RetrieveUpdateDestroyRoomView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         id = self.kwargs.get("pk")
-        return Room.objects.filter(id=id, user=self.request.user)
+        return Room.objects.filter(id=id, home__users=self.request.user)
