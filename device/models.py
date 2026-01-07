@@ -61,6 +61,9 @@ class Device(models.Model):
     def extra_settings(self):
         return {}
 
+    def make_intent(self, data: dict) -> None:
+        return
+
 
 class Event(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="events")

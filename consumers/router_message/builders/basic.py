@@ -31,6 +31,16 @@ def get_event_request(event: Event):
     )
 
 
+def get_intent_request(
+    intent: MessageEvent, target_device_mac: str, extra_settings: dict = None
+):
+    return build_request(
+        intent,
+        target_device_mac,
+        extra_settings if extra_settings else {},
+    )
+
+
 def get_connected_devices_request() -> DeviceMessage:
     return build_request(MessageEvent.GET_CONNECTED_DEVICES, "00:00:00:00:00:00", {})
 

@@ -18,6 +18,8 @@ from uuid import uuid4
 from django.core.cache import cache
 from django.conf import settings
 
+from smart_home.celery import initialize_ai_on_startup
+
 
 class FirmwareView(APIView):
     permission_classes = [IsAdminUser]

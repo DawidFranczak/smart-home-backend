@@ -161,15 +161,13 @@ class FavouriteView(APIView):
     def put(self, request, *args, **kwargs):
         user = request.user
         action = request.data["is_favourite"]
-        data = None
         if request.data["type"] == "room":
-            obj = get_object_or_404(Room, pk=request.data["id"], user=user)
+            obj = get_object_or_404(Room, pk=request.data["id"], home__users=user)
             (
                 user.favourite.room.remove(obj)
                 if action
                 else user.favourite.room.add(obj)
             )
-            data = RoomSerializer(obj).data
 
         elif request.data["type"] == "device":
             obj = get_object_or_404(Device, pk=request.data["id"])
@@ -178,8 +176,7 @@ class FavouriteView(APIView):
                 if action
                 else user.favourite.device.add(obj)
             )
-            data = DeviceSerializer(obj).data
-        return Response(data, status=status.HTTP_200_OK)
+        return Response({}, status=status.HTTP_200_OK)
 
 
 class HomeView(APIView):

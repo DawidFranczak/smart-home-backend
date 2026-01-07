@@ -2,6 +2,8 @@ import json
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+
+from ai_assistance.tasks import ai_test
 from consumers.utils import validate_user
 
 
@@ -23,7 +25,12 @@ class UserConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def receive(self, text_data=None, bytes_data=None):
-        pass
+        data = json.loads(text_data)
+        command_type = data.get("type", None)
+        match command_type:
+            case "aiCommand":
+                message = data.get("message", None)
+                ai_test.delay(self.user_instance.pk, message, self.channel_name)
 
     async def send_to_frontend(self, event):
         await self.send(text_data=event["data"])

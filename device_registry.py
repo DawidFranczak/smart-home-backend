@@ -20,11 +20,14 @@ class DeviceRegistry:
         self.register = {}
         self._initialized = True
 
-    def register_device(self, fun: str, model, serializer, serializer_device):
+    def register_device(
+        self, fun: str, model, serializer, serializer_device, available_intents=None
+    ):
         self.register[fun] = {
             "model": model,
             "serializer": serializer,
             "serializer_device": serializer_device,
+            "available_intents": available_intents if available_intents else [],
         }
 
     def get_model(self, fun: str):
@@ -41,6 +44,11 @@ class DeviceRegistry:
         if fun in self.register:
             return self.register[fun]["serializer_device"]
         raise KeyError("Serializer device not registered: {}".format(fun))
+
+    def get_available_intents(self, fun: str):
+        if fun in self.register:
+            return self.register[fun]["available_intents"]
+        raise KeyError("Available intents not registered: {}".format(fun))
 
     @property
     def devices(self):

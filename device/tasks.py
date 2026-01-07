@@ -1,11 +1,13 @@
-from celery import shared_task
 from aquarium.models import Aquarium
 from aquarium.serializer import AquariumSerializerDevice
+from consumers.frontend_message.frontend_message import FrontendMessage
+from consumers.frontend_message.frontend_message_type import FrontendMessageType
 from consumers.frontend_message.messenger import FrontendMessenger
 from consumers.router_message.builders.basic import set_settings_request
 from consumers.router_message.messenger import DeviceMessenger
 from device.serializers.device import DeviceSerializer
 from utils.check_hour_in_range import check_hour_in_range
+from celery import shared_task
 
 
 @shared_task
