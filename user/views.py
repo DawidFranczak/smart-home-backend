@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.serializers import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404, render
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from room.models import Room
 from device.models import Device
@@ -16,41 +17,25 @@ from django.conf import settings
 from device.serializers.device import DeviceSerializer
 from room.serializer import RoomSerializer
 from .models import Favourite, Home
+from .serializers import CustomTokenObtainPairSerializer
 
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
+class LoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs) -> Response:
-        username: str = request.data["username"]
-        password: str = request.data["password"]
-        user: AbstractUser | None = authenticate(username=username, password=password)
-        if user is None:
-            return Response(
-                {"message": "Błędny login lub hasło."},
-                status=status.HTTP_400_BAD_REQUEST,
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if request.headers.get("X-Client-Type") != "mobile":
+            refresh_token = response.data.get("refresh")
+            response.set_cookie(
+                key="refresh",
+                value=refresh_token,
+                samesite="none",
+                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds(),
+                httponly=True,
+                secure=True,
             )
-        refresh_token: Token = RefreshToken.for_user(user)
-        if request.headers.get("X-Client-Type") == "mobile":
-            response = Response(
-                {
-                    "access": str(refresh_token.access_token),
-                    "refresh": str(refresh_token),
-                },
-                status=status.HTTP_200_OK,
-            )
-            return response
-        response = Response()
-        response.status_code = status.HTTP_200_OK
-        response.set_cookie(
-            key="refresh",
-            value=refresh_token,
-            samesite="none",
-            max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"],
-            httponly=True,
-            secure=True,
-        )
-        response.data = {"access": str(refresh_token.access_token)}
         return response
 
 
@@ -175,6 +160,10 @@ class FavouriteView(APIView):
                 user.favourite.device.remove(obj)
                 if action
                 else user.favourite.device.add(obj)
+            )
+        else:
+            return Response(
+                {"error": "Invalid type."}, status=status.HTTP_400_BAD_REQUEST
             )
         return Response({}, status=status.HTTP_200_OK)
 

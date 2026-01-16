@@ -69,13 +69,12 @@ class DeviceModel:
             local_files_only=True,
             trust_remote_code=True,
         )
-
         self.model = AutoModelForCausalLM.from_pretrained(
             base_model_id,
             local_files_only=True,
             trust_remote_code=True,
             token=None,
-            dtype=torch.bfloat16,
+            dtype=torch.float32,
             low_cpu_mem_usage=True,
         )
         print(f"Loading LoRA adapter: {adapter_path_str}")
@@ -91,6 +90,7 @@ class DeviceModel:
             return_full_text=False,
             device="cpu",
         )
+        print(self.pipeline)
         self.llm = HuggingFacePipeline(pipeline=self.pipeline)
         self.chain = RunnableLambda(self.qwen_device_chain) | RunnableLambda(
             extract_json
