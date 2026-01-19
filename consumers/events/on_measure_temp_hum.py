@@ -1,7 +1,15 @@
 from consumers.events.base_event import BaseEventRequest
+from consumers.microservice_message.microservice_message import MicroserviceMessage
+from consumers.microservice_message.on_measurement import on_measurement
 from consumers.rabbitmq_publisher import RabbitMQPublisher, QueueNames, get_publisher
 from consumers.router_message.builders.measurements import (
     measurements_sleeping_time_response,
+)
+from consumers.router_message.device_message import DeviceMessage
+from consumers.router_message.message_event import MessageEvent
+from consumers.router_message.payload.measurement import (
+    TemperatureRequest,
+    HumidityRequest,
 )
 from utils.waiting_time import waiting_time
 from temperature.models import TempHum
@@ -12,7 +20,7 @@ class OnMeasureTempHum(BaseEventRequest):
 
     device_messanger = DeviceMessenger()
 
-    def handle_request(self, consumer, message):
+    def handle_request(self, consumer, message: DeviceMessage):
         try:
             sensor = TempHum.objects.get(mac=message.device_id)
         except TempHum.DoesNotExist:
@@ -25,4 +33,19 @@ class OnMeasureTempHum(BaseEventRequest):
             consumer.mac, measurements_sleeping_time_response(message, waiting_time())
         )
         publisher = get_publisher()
-        publisher.send_message(QueueNames.SENSORS, message)
+        sensor_id = sensor.pk
+        home_id = sensor.home.pk
+        temperature_message = on_measurement(
+            MessageEvent.ON_MEASURE_TEMPERATURE,
+            sensor_id,
+            home_id,
+            message.payload.temperature,
+        )
+        humidity_message = on_measurement(
+            MessageEvent.ON_MEASURE_HUMIDITY,
+            sensor_id,
+            home_id,
+            message.payload.humidity,
+        )
+        publisher.send_message(QueueNames.SENSORS, temperature_message)
+        publisher.send_message(QueueNames.SENSORS, humidity_message)
