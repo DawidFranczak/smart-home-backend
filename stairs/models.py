@@ -2,9 +2,8 @@ from django.db import models
 from device.models import Device
 
 
-# Create your models here.
 class Stairs(Device):
-    steps = models.IntegerField(default=200)
-    brightness = models.IntegerField(default=100)
-    light_time = models.IntegerField(default=6)
-    mode = models.BooleanField(default=False)
+    brightness = models.SmallIntegerField(default=100)
+    step = models.SmallIntegerField(default=100)
+    lighting_time = models.SmallIntegerField(default=10)
+    light_count = models.IntegerField(default=16)

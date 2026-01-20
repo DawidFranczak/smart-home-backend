@@ -1,11 +1,10 @@
 from django.urls import path
-from .views import LampGetAll, RetrieveUpdateDestroyLamp
+from .views import RetrieveUpdateDestroyStairs
 
 urlpatterns = [
-    path("", LampGetAll.as_view(), name="get-lamp"),
     path(
         "<pk>/",
-        RetrieveUpdateDestroyLamp.as_view(),
-        name="retrieve-update-destroy-lamp",
+        RetrieveUpdateDestroyStairs.as_view(),
+        name="retrieve-update-destroy-stairs",
     ),
 ]
