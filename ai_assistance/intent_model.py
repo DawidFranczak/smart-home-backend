@@ -61,7 +61,7 @@ class IntentModel:
             local_files_only=True,
             trust_remote_code=True,
             token=None,
-            dtype=torch.bfloat16,
+            dtype=torch.float32,
             low_cpu_mem_usage=True,
         )
 
@@ -78,6 +78,7 @@ class IntentModel:
             return_full_text=False,
             device="cpu",
         )
+        print(self.pipe)
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
         self.system_prompt = system_prompt
         self.chain = RunnableLambda(self.qwen_intent_chain) | RunnableLambda(
@@ -99,6 +100,7 @@ class IntentModel:
         return output.strip()
 
     def run(self, intents: list[str], prompt: str) -> dict:
+        print("START WITH", prompt)
         response = self.chain.invoke(
             {"input_text": prompt, "available_intents": intents}
         )

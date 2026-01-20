@@ -6,6 +6,7 @@ urlpatterns = [
     path("api/", include("user.urls")),
     path("api/room/", include("room.urls")),
     path("api/lamp/", include("lamp.urls")),
+    path("api/stairs/", include("stairs.urls")),
     path("api/device/", include("device.urls")),
     path("api/aquarium/", include("aquarium.urls")),
     path("api/button/", include("button.urls")),

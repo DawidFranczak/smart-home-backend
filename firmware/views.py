@@ -57,9 +57,9 @@ class FirmwareUpdate(APIView):
         if not pk:
             return Response({}, status=HTTP_400_BAD_REQUEST)
         device = get_object_or_404(Device, pk=pk, home__users=request.user)
-
+        firmware_name = f"{device.fun}_{device.chip_type}"
         firmware = (
-            FirmwareDevice.objects.filter(to_device=device.fun)
+            FirmwareDevice.objects.filter(to_device=firmware_name)
             .order_by("-version")
             .first()
         )
@@ -71,7 +71,7 @@ class FirmwareUpdate(APIView):
         payload = {
             "url": settings.FIRMWARE_DEVICE_ENDPOINT + f"?token={token}",
             "version": firmware.version,
-            "to_device": device.fun,
+            "to_device": firmware_name,
         }
         message = update_firmware_request(device.mac, payload)
         DeviceMessenger().send(device.get_router_mac(), message)

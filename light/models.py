@@ -41,6 +41,5 @@ class Light(Device):
                 message = get_intent_request(MessageEvent.OFF, self.mac)
         if message is not None:
             device_messenger = DeviceMessenger()
-            mac = self.get_router_mac()
             device_messenger.send(self.get_router_mac(), message)
             self.save(update_fields=["on"])

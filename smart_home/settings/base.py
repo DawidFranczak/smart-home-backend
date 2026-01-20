@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "event",
     "firmware",
     "ai_assistance",
+    "consumers",
 ]
 
 MIDDLEWARE = [
@@ -101,7 +102,6 @@ DATABASES = {
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT"),
-        "OPTIONS": {"options": f"-c search_path={os.getenv('POSTGRES_SEARCH_PATH')}"},
     }
 }
 
@@ -140,7 +140,11 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(
         seconds=int(os.getenv("REFRESH_TOKEN_LIFETIME"))
     ),
+    "ALGORITHM": "RS256",
+    "SIGNING_KEY": Path(os.getenv("JWT_PRIVATE_KEY_PATH")).read_text(),
+    "VERIFYING_KEY": Path(os.getenv("JWT_PUBLIC_KEY_PATH")).read_text(),
     "ROTATE_REFRESH_TOKENS": False,
+    "TOKEN_OBTAIN_SERIALIZER": "user.serializers.CustomTokenObtainPairSerializer",
 }
 
 # Channels

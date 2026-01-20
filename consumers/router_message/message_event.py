@@ -41,8 +41,8 @@ class MessageEvent(str, Enum):
     CAMERA_ERROR = "camera_error"
 
     # Measurement events
-    ON_MEASURE_TEMPERATURE = "on_measure_temp"
-    ON_MEASURE_HUMIDITY = "on_measure_hum"
+    ON_MEASURE_TEMPERATURE = "on_measure_temperature"
+    ON_MEASURE_HUMIDITY = "on_measure_humidity"
     ON_MEASUREMENT_TEMP_HUM = "on_measurement_temp_hum"
 
     # Temperature events

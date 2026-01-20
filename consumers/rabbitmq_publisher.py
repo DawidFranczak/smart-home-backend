@@ -141,8 +141,5 @@ def start_publisher():
     publisher.start()
 
 
-start_publisher()
-
-
 def get_publisher():
     return publisher

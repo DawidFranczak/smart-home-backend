@@ -5,6 +5,12 @@ from room.models import Room
 from user.models import Home
 
 
+class DeviceType(models.TextChoices):
+    ESP32 = "ESP32", "esp32"
+    ESP8266 = "ESP8266", "esp8266"
+    ESP8266_01 = "ESP8266_01", "esp8266_01"
+
+
 class DeviceSettings(models.Model):
     fun = models.CharField(max_length=100, default="")
     message = models.CharField(max_length=100, default="")
@@ -35,13 +41,16 @@ class Device(models.Model):
         Home, on_delete=models.CASCADE, related_name="devices", null=True
     )
     name = models.CharField(max_length=100, default="Nieznane")
-    fun = models.CharField(max_length=100, default="")
+    fun = models.CharField(max_length=100)
     last_seen = models.DateTimeField(auto_now_add=True, auto_created=True)
-    mac = models.CharField(max_length=100, default="")
+    mac = models.CharField(max_length=100)
     wifi_strength = models.IntegerField(default=0)
     pending = JSONField(default=list, blank=True)
     is_online = models.BooleanField(default=False)
     firmware_version = models.FloatField(default=1.0)
+    chip_type = models.CharField(
+        max_length=100, choices=DeviceType, default=DeviceType.ESP32
+    )
 
     def __str__(self):
         return self.name
